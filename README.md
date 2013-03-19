@@ -1,4 +1,5 @@
-Postgresql-API-Framework
+Postgresql Tools
 ========================
 
-A server-side database frame work to automate the create of standard stored procedures for common tasks.
+Some tools to make Postgresql development easier and more efficient.
+
