@@ -470,6 +470,17 @@ other			.
 			END_TOKEN(PGParse::UNTERMINATED_HEX_STRING_E);
 			yyterminate();
 		}
+{xnstart}	{
+			/* ########## National character literal flag ##########
+			 * 
+			 * This is the "n" in front of n'some text'.  We treat it
+			 * as a regular string, but we need to return something for
+			 * the "n" regardless.
+			 *
+			 */
+			yyless(1);
+			ADD_TOKEN(PGParse::NCHAR_FLAG_T);
+		}
 		
 {other}		{
 			ADD_TOKEN(PGParse::INVALID);

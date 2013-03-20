@@ -35,6 +35,7 @@ const TokenMeta token_data[] = {
  */
 	{"bit string",				LITERAL_TOKEN},
 	{"hex string",				LITERAL_TOKEN},
+	{"national character flag",		LITERAL_TOKEN},
 	{"whitespace",	 			WHITESPACE_TOKEN},
 	{"comment",	 			COMMENT_TOKEN},
 	{"token types sentinal", 		INVALID_TOKEN},

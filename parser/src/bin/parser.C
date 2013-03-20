@@ -25,9 +25,9 @@ main(int argc, char **argv)
 		std::cout << "Case insensitive conversion failed." << std::endl;
 	}
 
-	const char *bytes = "Hello world B'ABCD' b'abcd' /*comment */ x'12ff'  /*  stuff /* nested */ */ x'22";
-	//                   00000000001111111111222222222233333333334444444444
-        //                   01234567890123456789012345678901234567890123456789
+	const char *bytes = " n'some text' Hello world B'ABCD' b'abcd' /*comment */ x'12ff'  /*  stuff /* nested */ */ x'22";
+	//                   00000000001111111111222222222233333333334444444444555555555566666666667777777777888888888899999
+        //                   01234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234
 	PGParse::Scanner scanner;
 	std::size_t len = strlen(bytes);
 	scanner.scan(bytes, len+1);
