@@ -24,6 +24,7 @@
 
 #include <cstdio>
 #include <cstring>
+#include <cctype>
 #include <list>
 
 #include "Token.h"
@@ -31,14 +32,24 @@
 namespace PGParse { struct ScannerState
 {
 	ScannerState(TokenList& tokens_)
-		: tokens(tokens_), xcdepth(0), position(0), start_of_token(-1)
+		: tokens(tokens_),
+		  xcdepth(0),
+		  position(0),
+		  start_of_token(-1),
+		  standard_conforming_strings(false)
 	{}
-	TokenList& tokens;
-	int xcdepth;
-	size_t position;
-	yyscan_t scanner;
-	size_t start_of_token;
+	TokenList& 	tokens;
+	int 		xcdepth;
+	size_t 		position;
+	yyscan_t 	scanner;
+	size_t 		start_of_token;
+	bool		standard_conforming_strings;
 };}
+
+
+static bool check_uescapechar(unsigned char escape);
+static bool scanner_isspace(char ch);
+
 
 #define YY_EXTRA_TYPE PGParse::ScannerState *
 
@@ -481,13 +492,169 @@ other			.
 			yyless(1);
 			ADD_TOKEN(PGParse::NCHAR_FLAG_T);
 		}
-		
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1
+{xqstart}	{
+			/* ########## Quoted strings ##########
+			 *
+			 * We do not support "escape_string_warning"
+			 * (see: http://www.postgresql.org/docs/9.2/static/runtime-config-compatible.html
+			 * but we do support the standard_conforming_strings flag.
+			 *
+			 * FIXME: The original lexer checks the validity of multi-byte strings.  That would
+			 * require pulling in more code than I want to deal with at the moment, so I've
+			 * pulled this out.  Might want to revisit this later - either bring in the mbstr
+			 * functions from Postgres, or find a library that does something similar.
+			 */
+			START_TOKEN();
+			if (yyextra->standard_conforming_strings) {
+				BEGIN(xq);
+			} else {
+				BEGIN(xe);
+			}
+		}
+{xestart}	{
+			START_TOKEN();
+			BEGIN(xe);
+		}
+{xusstart}	{
+			START_TOKEN();
+			BEGIN(xus);
+		}
+<xq,xe>{quotestop}	|
+<xq,xe>{quotefail} {
+			yyless(1);
+			// FIXME: what's this about quotefail?
+			END_TOKEN(PGParse::STRING_T);
+			BEGIN(INITIAL);
+		}
+<xus>{quotestop} |
+<xus>{quotefail} {
+			/* throw back all but the quote */
+			yyless(1);
+			CONTINUE_TOKEN();
+			/* handle possible UESCAPE in xusend mode */
+			BEGIN(xusend);
+		}
+<xusend>{whitespace}
+<xusend>{other} |
+<xusend>{xustop1} {
+			/* no UESCAPE after the quote, throw back everything */
+			yyless(0);
+			if (!yyextra->standard_conforming_strings) {
+				END_TOKEN(PGParse::STANDARD_CONFORMING_STRINGS_DISABLED_E);
+			} else {
+				END_TOKEN(PGParse::UNI_STRING_T);
+			}
+
+			BEGIN(INITIAL);
+		}
+<xusend>{xustop2} {
+			/* found UESCAPE after the end quote */
+			BEGIN(INITIAL);
+			if (!check_uescapechar(yytext[yyleng-2])) {
+				END_TOKEN(PGParse::STANDARD_CONFORMING_STRINGS_DISABLED_E);
+			} else if (!yyextra->standard_conforming_strings) {
+				END_TOKEN(PGParse::STANDARD_CONFORMING_STRINGS_DISABLED_E);
+			} else {
+				END_TOKEN(PGParse::STANDARD_CONFORMING_STRINGS_DISABLED_E);
+			}
+		}
+<xq,xe,xus>{xqdouble} {
+			CONTINUE_TOKEN();
+		}
+<xq,xus>{xqinside}  {
+			CONTINUE_TOKEN();
+		}
+<xe>{xeinside}  {
+			CONTINUE_TOKEN();
+		}
+<xe>{xeunicode} {
+			CONTINUE_TOKEN();
+		}
+<xeu>{xeunicode} {
+			CONTINUE_TOKEN();
+			BEGIN(xe);
+		}
+<xeu>.		{
+			END_TOKEN(PGParse::INVALID_UNICODE_SURROGATE_PAIR_E);
+		}
+<xeu>\n		{
+			END_TOKEN(PGParse::INVALID_UNICODE_SURROGATE_PAIR_E);
+		}
+<xeu><<EOF>>	{
+			END_TOKEN(PGParse::INVALID_UNICODE_SURROGATE_PAIR_E);
+		}
+<xe,xeu>{xeunicodefail}	{
+			END_TOKEN(PGParse::INVALID_UNICODE_ESCAPE_CHAR_E);
+		}
+<xe>{xeescape}  {
+			CONTINUE_TOKEN();
+		}
+<xe>{xeoctesc}  {
+			CONTINUE_TOKEN();
+		}
+<xe>{xehexesc}  {
+			CONTINUE_TOKEN();
+		}
+<xq,xe,xus>{quotecontinue} {
+			CONTINUE_TOKEN();
+		}
+<xe>.			{
+			CONTINUE_TOKEN();
+		}
+<xq,xe,xus><<EOF>>	{
+			END_TOKEN(PGParse::UNTERMINATED_QUOTED_STRING_E);
+		}
+
 {other}		{
 			ADD_TOKEN(PGParse::INVALID);
 		}
 %%
 
 #include "Scanner.h"
+
+
+/* is 'escape' acceptable as Unicode escape character (UESCAPE syntax) ? */
+static bool
+check_uescapechar(unsigned char escape)
+{
+	if (isxdigit(escape)
+		|| escape == '+'
+		|| escape == '\''
+		|| escape == '"'
+		|| scanner_isspace(escape))
+	{
+		return false;
+	} else {
+		return true;
+	}
+}
+
+/*
+ * Taken from scansup.c
+ *
+ * scanner_isspace() --- return TRUE if flex scanner considers char whitespace
+ *
+ * This should be used instead of the potentially locale-dependent isspace()
+ * function when it's important to match the lexer's behavior.
+ *
+ * In principle we might need similar functions for isalnum etc, but for the
+ * moment only isspace seems needed.
+*/
+static bool
+scanner_isspace(char ch)
+{
+	/* This must match scan.l's list of {space} characters */
+	if (ch == ' ' ||
+	    ch == '\t' ||
+	    ch == '\n' ||
+	    ch == '\r' ||
+	    ch == '\f'
+	) {
+		return true;
+	}
+	return false;
+}
 
 namespace PGParse {
 

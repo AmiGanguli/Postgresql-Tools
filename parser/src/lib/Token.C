@@ -33,17 +33,23 @@ const TokenMeta token_data[] = {
 /**
  * Other token types.
  */
-	{"bit string",				LITERAL_TOKEN},
-	{"hex string",				LITERAL_TOKEN},
-	{"national character flag",		LITERAL_TOKEN},
-	{"whitespace",	 			WHITESPACE_TOKEN},
-	{"comment",	 			COMMENT_TOKEN},
-	{"token types sentinal", 		INVALID_TOKEN},
-	{"unterminated c-style comment",	ERROR_TOKEN},
-	{"unterminated bit string",		ERROR_TOKEN},
-	{"unterminated hex string",		ERROR_TOKEN},
-	{"error sentinal",			INVALID_TOKEN},
-	{"final sentinal", 			INVALID_TOKEN}
+	{"bit string",					LITERAL_TOKEN},
+	{"hex string",					LITERAL_TOKEN},
+	{"unicode escape string", 			LITERAL_TOKEN},
+	{"string literal",	 			LITERAL_TOKEN},
+	{"national character flag",			LITERAL_TOKEN},
+	{"whitespace",	 				WHITESPACE_TOKEN},
+	{"comment",	 				COMMENT_TOKEN},
+	{"token types sentinal", 			INVALID_TOKEN},
+	{"unterminated c-style comment",		ERROR_TOKEN},
+	{"unterminated bit string",			ERROR_TOKEN},
+	{"unterminated hex string",			ERROR_TOKEN},
+	{"unterminated quoted string",			ERROR_TOKEN},
+	{"standard-conforming strings are disabled",	ERROR_TOKEN},
+	{"invalid unicode escape character",		ERROR_TOKEN},
+	{"invalid unicode surrogate pair",		ERROR_TOKEN},
+	{"error sentinal",				INVALID_TOKEN},
+	{"final sentinal", 				INVALID_TOKEN}
 };
 #undef PG_KEYWORD
 
