@@ -25,7 +25,7 @@ main(int argc, char **argv)
 		std::cout << "Case insensitive conversion failed." << std::endl;
 	}
 
-	const char *bytes = "Hello world B'ABCD' b'abcd' /*comment */   /*  stuff /* nested */ but not closed";
+	const char *bytes = "Hello world B'ABCD' b'abcd' /*comment */ x'12ff'  /*  stuff /* nested */ */ x'22";
 	//                   00000000001111111111222222222233333333334444444444
         //                   01234567890123456789012345678901234567890123456789
 	PGParse::Scanner scanner;

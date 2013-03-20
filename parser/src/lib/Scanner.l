@@ -41,6 +41,34 @@ namespace PGParse { struct ScannerState
 };}
 
 #define YY_EXTRA_TYPE PGParse::ScannerState *
+
+/**
+ * The requirements for this lexer are much simpler than for the 'real' PostgreSQL parser.
+ *
+ * The rules are:
+ *
+ *   1. Every input character must belong to a token.
+ *   2. Every token must encode the token id and the position.
+ *
+ * This way we can use the token list together with the original input buffer to recover
+ * the text of each token.  We can also step through the original input buffer and added
+ * annotations - markup if we're emitting HTML, or colours if we're formatting text form
+ * a text editor.
+ *
+ * The following three macros do most of the work:
+ *
+ *   ADD_TOKEN       Add a token in one step - used if the rule matches the entire token.
+ *   START_TOKEN     Save the starting position of the token, but don't add it yet.
+ *                   Used in rules that match only the start of the token.
+ *   CONTINUE_TOKEN  Used within rules that match the inside of a token.
+ *   END_TOKEN       Used when a rule closes-off a token that began previously.
+ *
+ * IMPORTANT: - One of these macros must be called within each rule.
+ *            - yyless updates the token length, and we need that to calculate the 
+ *              correct position, so if yyless is called it must happen before the
+ *              macros are used.
+ */
+
 #define ADD_TOKEN(id)		yyextra->tokens.push_back(PGParse::Token(yyextra->position, id)); \
 				yyextra->start_of_token = yyextra->position;\
 				yyextra->position += yyleng
@@ -415,7 +443,33 @@ other			.
 <xb>{xbinside}	{
 			CONTINUE_TOKEN();
 		}
+		
+<xb><<EOF>>	{
+			END_TOKEN(PGParse::UNTERMINATED_BIT_STRING_E);
+			yyterminate();
+		}
 
+{xhstart}	{
+			/** ########## Hexadecimal bit type ##########
+			 *
+			 * At some point we should simply pass the string
+			 * forward to the parser and label it there.
+			 * In the meantime, place a leading "x" on the string
+			 * to mark it for the input routine as a hex string.
+			 */
+			START_TOKEN();
+			BEGIN(xh);
+		}
+<xh>{quotestop}	|
+<xh>{quotefail} {
+			yyless(1);
+			END_TOKEN(PGParse::HEX_STRING_T);
+			BEGIN(INITIAL);
+		}
+<xh><<EOF>>	{
+			END_TOKEN(PGParse::UNTERMINATED_HEX_STRING_E);
+			yyterminate();
+		}
 		
 {other}		{
 			ADD_TOKEN(PGParse::INVALID);

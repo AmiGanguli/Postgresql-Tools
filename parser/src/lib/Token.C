@@ -34,10 +34,13 @@ const TokenMeta token_data[] = {
  * Other token types.
  */
 	{"bit string",				LITERAL_TOKEN},
+	{"hex string",				LITERAL_TOKEN},
 	{"whitespace",	 			WHITESPACE_TOKEN},
 	{"comment",	 			COMMENT_TOKEN},
 	{"token types sentinal", 		INVALID_TOKEN},
 	{"unterminated c-style comment",	ERROR_TOKEN},
+	{"unterminated bit string",		ERROR_TOKEN},
+	{"unterminated hex string",		ERROR_TOKEN},
 	{"error sentinal",			INVALID_TOKEN},
 	{"final sentinal", 			INVALID_TOKEN}
 };
