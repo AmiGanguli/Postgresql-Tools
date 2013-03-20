@@ -53,8 +53,6 @@ namespace PGParse { struct ScannerState
 #define END_TOKEN(id)		yyextra->tokens.push_back(PGParse::Token(yyextra->start_of_token, id)); \
 				yyextra->position += yyleng
 
-#define MY_YYLESS(n)		yyless(n); \
-				yyextra->position -= yyleng + n
 %}
 
 %option reentrant
@@ -352,18 +350,18 @@ other			.
 			/**
 			 * ########## C-Style comments ##########
 			 */
+			/* Put back any characters past slash-star; see above */
+			yyless(2);
 			START_TOKEN();
 			yyextra->xcdepth = 0;
 			BEGIN(xc);
-			/* Put back any characters past slash-star; see above */
-			MY_YYLESS(2);
 		}
 		
 <xc>{xcstart}	{
+			/* Put back any characters past slash-star; see above */
+			yyless(2);
 			CONTINUE_TOKEN();
 			yyextra->xcdepth ++;
-			/* Put back any characters past slash-star; see above */
-			MY_YYLESS(2);
 		}
 
 <xc>{xcstop}	{
@@ -409,8 +407,8 @@ other			.
 		}
 <xb>{quotestop}	|
 <xb>{quotefail} {
+			yyless(1);
 			END_TOKEN(PGParse::BIT_STRING_T);
-			MY_YYLESS(1);
 			BEGIN(INITIAL);
 		}
 <xh>{xhinside}	|
