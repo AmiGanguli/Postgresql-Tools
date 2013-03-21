@@ -36,14 +36,33 @@ namespace PGParse { struct ScannerState
 		  xcdepth(0),
 		  position(0),
 		  start_of_token(-1),
-		  standard_conforming_strings(false)
+		  standard_conforming_strings(false),
+		  dolqstart(0)
 	{}
+
+	~ScannerState()
+	{
+		if (dolqstart) {
+			free dolqstart;
+		}
+	}
+
+	void
+	saveDolq(const char *dolq_)
+	{
+		if (dolqstart) {
+			free dolqstart;
+		}
+		dolqstart = strdup(dolq_);
+	}
+
 	TokenList& 	tokens;
 	int 		xcdepth;
 	size_t 		position;
 	yyscan_t 	scanner;
 	size_t 		start_of_token;
 	bool		standard_conforming_strings;
+	char *		dolqstart;
 };}
 
 
@@ -628,6 +647,68 @@ other			.
 			yyterminate();
 		}
 
+{dolqdelim}	{
+			/* ########## Dollar-quoted strings ########## */
+			START_TOKEN();
+			yyextra->saveDolq(yytext);
+			BEGIN(xdolq);
+		}
+{dolqfailed}	{
+			SET_YYLLOC();
+			/* throw back all but the initial "$" */
+			yyless(1);
+			/* and treat it as {other} */
+			return yytext[0];
+		}
+<xdolq>{dolqdelim} {
+			if (strcmp(yytext, yyextra->dolqstart) == 0)
+			{
+				pfree(yyextra->dolqstart);
+				yyextra->dolqstart = NULL;
+				BEGIN(INITIAL);
+				yylval->str = litbufdup(yyscanner);
+				return SCONST;
+			}
+			else
+			{
+				/*
+				 * When we fail to match $...$ to dolqstart, transfer
+				 * the $... part to the output, but put back the final
+				 * $ for rescanning.  Consider $delim$...$junk$delim$
+				 */
+				addlit(yytext, yyleng-1, yyscanner);
+				yyless(yyleng-1);
+			}
+		}
+<xdolq>{dolqinside} {
+			addlit(yytext, yyleng, yyscanner);
+		}
+<xdolq>{dolqfailed} {
+			addlit(yytext, yyleng, yyscanner);
+		}
+<xdolq>.	{
+			/* This is only needed for $ inside the quoted text */
+			addlitchar(yytext[0], yyscanner);
+		}
+<xdolq><<EOF>>	{ yyerror("unterminated dollar-quoted string"); }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+		
 <<EOF>>		{
 			yyterminate();
 		}
