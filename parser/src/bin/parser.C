@@ -22,7 +22,36 @@ TEST_CASE("keywordToId/case-insensitive", "SQL keywords are not case-sensitive")
 }
 
 
-TEST_CASE("Scanner::scan/c-comments1", "SQL c-style comments")
+TEST_CASE("Scanner::scan/sql-comments1", "SQL-style comments")
+{
+	const char *bytes = "    -- This is a comment\n   -- And another";
+	//                   0000000000111111111122222 222223
+	//                   0123456789012345678901234 567890
+	PGParse::Token correct[] = {
+		{0, PGParse::WHITESPACE_T},
+		{4, PGParse::COMMENT_T},
+		{24, PGParse::WHITESPACE_T},
+		{28, PGParse::COMMENT_T},
+		{31, PGParse::INVALID}       // FIXME!!!
+	};
+	REQUIRE (true);
+	PGParse::Scanner scanner;
+	std::size_t len = strlen(bytes);
+	scanner.scan(bytes, len+1);
+	int j = 0;
+	for (
+		PGParse::TokenList::const_iterator i = scanner.tokensBegin(); 
+		i != scanner.tokensEnd(); 
+		i ++, j ++
+	) {
+		//std::cout << i->offset() << std::endl;
+		REQUIRE(j < 6);
+		REQUIRE(i->offset() == correct[j].offset());
+		REQUIRE(i->id() == correct[j].id());
+	}
+}
+
+TEST_CASE("Scanner::scan/c-comments1", "C-style comments")
 {
 	const char *bytes = " /*comment 1*/  /* comment 2*/ ";
 	//                   0000000000111111111122222222223
@@ -51,6 +80,7 @@ TEST_CASE("Scanner::scan/c-comments1", "SQL c-style comments")
 		REQUIRE(i->id() == correct[j].id());
 	}
 }
+
 
 TEST_CASE("Scanner::scan/quote1", "Simple single quotes.")
 {

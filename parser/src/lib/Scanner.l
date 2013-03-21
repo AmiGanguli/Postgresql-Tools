@@ -381,10 +381,23 @@ other			.
  
 %%
 
-{whitespace}	{
+{space}+	{
+			/** 
+			 * ########## White space ##########
+			 * The original lexer handles simple whitespace and 
+			 * SQL-style comments identically.  That doesn't work 
+			 * for us.  In order to keep the token section above
+			 * identical to the original, we deal with this in 
+			 * the rules.
+			 */
 			ADD_TOKEN(PGParse::WHITESPACE_T);
 		}
-
+{comment}	{
+			/**
+			 * ########## SQL-Style comments ##########
+			 */
+			ADD_TOKEN(PGParse::COMMENT_T);
+		}
 {xcstart}	{
 			/**
 			 * ########## C-Style comments ##########
