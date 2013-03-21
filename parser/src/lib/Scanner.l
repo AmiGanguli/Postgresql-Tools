@@ -465,6 +465,11 @@ other			.
 		}
 <xh>{xhinside}	|
 <xb>{xbinside}	{
+			/**
+			 * FIXME: the original lexer doesn't validate
+			 * the contents of bitstrings and hexstrings.  We
+			 * should probably change this.
+			 */
 			CONTINUE_TOKEN();
 		}
 		
@@ -501,6 +506,8 @@ other			.
 			 * as a regular string, but we need to return something for
 			 * the "n" regardless.
 			 *
+			 * FIXME: this should probably be treated identically to
+			 * the other strings.
 			 */
 			yyless(1);
 			ADD_TOKEN(PGParse::NCHAR_FLAG_T);
@@ -596,6 +603,7 @@ other			.
 		}
 <xeu><<EOF>>	{
 			END_TOKEN(PGParse::INVALID_UNICODE_SURROGATE_PAIR_E);
+			yyterminate();
 		}
 <xe,xeu>{xeunicodefail}	{
 			END_TOKEN(PGParse::INVALID_UNICODE_ESCAPE_CHAR_E);
@@ -617,6 +625,7 @@ other			.
 		}
 <xq,xe,xus><<EOF>>	{
 			END_TOKEN(PGParse::UNTERMINATED_QUOTED_STRING_E);
+			yyterminate();
 		}
 
 <<EOF>>		{
