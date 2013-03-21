@@ -5,6 +5,8 @@ set (SQLParser_VERSION_MAJOR 0)
 set (SQLParser_VERSION_MINOR 0)
 set (LOG_LEVEL 9)
 
+set(CMAKE_CXX_FLAGS "-std=c++11")
+
 find_package(FLEX)
 FLEX_TARGET(scanner
 	${CMAKE_CURRENT_SOURCE_DIR}/src/lib/Scanner.l

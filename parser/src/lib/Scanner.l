@@ -492,7 +492,7 @@ other			.
 			yyless(1);
 			ADD_TOKEN(PGParse::NCHAR_FLAG_T);
 		}
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1
+
 {xqstart}	{
 			/* ########## Quoted strings ##########
 			 *
@@ -606,6 +606,10 @@ other			.
 			END_TOKEN(PGParse::UNTERMINATED_QUOTED_STRING_E);
 		}
 
+<<EOF>>		{
+			yyterminate();
+		}
+		
 {other}		{
 			ADD_TOKEN(PGParse::INVALID);
 		}
