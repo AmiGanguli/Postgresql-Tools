@@ -43,7 +43,7 @@ namespace PGParse { struct ScannerState
 	~ScannerState()
 	{
 		if (dolqstart) {
-			free dolqstart;
+			free(dolqstart);
 		}
 	}
 
@@ -51,9 +51,13 @@ namespace PGParse { struct ScannerState
 	saveDolq(const char *dolq_)
 	{
 		if (dolqstart) {
-			free dolqstart;
+			free(dolqstart);
 		}
-		dolqstart = strdup(dolq_);
+		if (dolq_) {
+			dolqstart = strdup(dolq_);
+		} else {
+			dolqstart = 0;
+		}
 	}
 
 	TokenList& 	tokens;
@@ -519,7 +523,7 @@ other			.
 			yyterminate();
 		}
 {xnstart}	{
-			/* ########## National character literal flag ##########
+			/** ########## National character literal flag ##########
 			 * 
 			 * This is the "n" in front of n'some text'.  We treat it
 			 * as a regular string, but we need to return something for
@@ -533,7 +537,7 @@ other			.
 		}
 
 {xqstart}	{
-			/* ########## Quoted strings ##########
+			/** ########## Quoted strings ##########
 			 *
 			 * We do not support "escape_string_warning"
 			 * (see: http://www.postgresql.org/docs/9.2/static/runtime-config-compatible.html
@@ -648,26 +652,25 @@ other			.
 		}
 
 {dolqdelim}	{
-			/* ########## Dollar-quoted strings ########## */
+			/** ########## Dollar-quoted strings ########## */
 			START_TOKEN();
 			yyextra->saveDolq(yytext);
 			BEGIN(xdolq);
 		}
 {dolqfailed}	{
-			SET_YYLLOC();
 			/* throw back all but the initial "$" */
 			yyless(1);
-			/* and treat it as {other} */
-			return yytext[0];
+			/* I think this can only be an error.  Either we never found
+			 * the second dollar sign, or there was an illegal character.
+			 */
+			ADD_TOKEN(PGParse::MALFORMED_DOLLAR_QUOTE_E);
 		}
 <xdolq>{dolqdelim} {
 			if (strcmp(yytext, yyextra->dolqstart) == 0)
 			{
-				pfree(yyextra->dolqstart);
-				yyextra->dolqstart = NULL;
+				yyextra->saveDolq(0);
+				END_TOKEN(PGParse::DOLQ_STRING_T);
 				BEGIN(INITIAL);
-				yylval->str = litbufdup(yyscanner);
-				return SCONST;
 			}
 			else
 			{
@@ -676,21 +679,23 @@ other			.
 				 * the $... part to the output, but put back the final
 				 * $ for rescanning.  Consider $delim$...$junk$delim$
 				 */
-				addlit(yytext, yyleng-1, yyscanner);
 				yyless(yyleng-1);
+				CONTINUE_TOKEN();
 			}
 		}
 <xdolq>{dolqinside} {
-			addlit(yytext, yyleng, yyscanner);
+			CONTINUE_TOKEN();
 		}
 <xdolq>{dolqfailed} {
-			addlit(yytext, yyleng, yyscanner);
+			CONTINUE_TOKEN();
 		}
 <xdolq>.	{
 			/* This is only needed for $ inside the quoted text */
-			addlitchar(yytext[0], yyscanner);
+			CONTINUE_TOKEN();
 		}
-<xdolq><<EOF>>	{ yyerror("unterminated dollar-quoted string"); }
+<xdolq><<EOF>>	{ 
+			END_TOKEN(PGParse::UNTERMINATED_DOLQUOTE_STRING_E);
+		}
 
 
 

@@ -37,6 +37,7 @@ const TokenMeta token_data[] = {
 	{"hex string",					LITERAL_TOKEN},
 	{"unicode escape string", 			LITERAL_TOKEN},
 	{"string literal",	 			LITERAL_TOKEN},
+	{"dollar quote string literal",	 		LITERAL_TOKEN},
 	{"national character flag",			LITERAL_TOKEN},
 	{"whitespace",	 				WHITESPACE_TOKEN},
 	{"comment",	 				COMMENT_TOKEN},
@@ -45,9 +46,11 @@ const TokenMeta token_data[] = {
 	{"unterminated bit string",			ERROR_TOKEN},
 	{"unterminated hex string",			ERROR_TOKEN},
 	{"unterminated quoted string",			ERROR_TOKEN},
+	{"unterminated dollar quoted string",		ERROR_TOKEN},
 	{"standard-conforming strings are disabled",	ERROR_TOKEN},
 	{"invalid unicode escape character",		ERROR_TOKEN},
 	{"invalid unicode surrogate pair",		ERROR_TOKEN},
+	{"malformed dollar quote",			ERROR_TOKEN},
 	{"error sentinal",				INVALID_TOKEN},
 	{"final sentinal", 				INVALID_TOKEN}
 };
