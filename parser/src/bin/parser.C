@@ -209,6 +209,12 @@ TEST_CASE("Scanner::scan/quote2", "Extended single quotes.")
 	}
 }
 
+// FIXME: lots of escape code cases to test.  Probably need to revisit this
+//        anyway, since we should either pass the escape sequences untouched
+//        (simplifying the lexer) or actually parse them properly here and
+//        save the value.
+//
+
 TEST_CASE("Scanner::scan/dolquote1", "Dollar quotes.")
 {
 	const char *bytes = " $hello$ $world$  $hello$ $stuff$ this is some new $un$stuff$ $jump $jump$ ";
@@ -246,11 +252,35 @@ TEST_CASE("Scanner::scan/dolquote1", "Dollar quotes.")
 	}
 }
 
-// FIXME: lots of escape code cases to test.  Probably need to revisit this
-//        anyway, since we should either pass the escape sequences untouched
-//        (simplifying the lexer) or actually parse them properly here and
-//        save the value.
-//
+TEST_CASE("Scanner::scan/quoted-identifier", "Quoted identifiers")
+{
+	const char *bytes = " \"hello world\"  \"one";
+	//                   0 000000000111 111 11112222
+	//                   0 123456789012 345 67890127
+	PGParse::Token correct[] = {
+		{0, PGParse::WHITESPACE_T},
+		{1, PGParse::DQ_IDENTIFIER_T},
+		{14, PGParse::WHITESPACE_T},
+		{16, PGParse::UNTERMINATED_QUOTED_IDENTIFIER_E},
+		{20, PGParse::INVALID}       // FIXME!!!
+	};
+	REQUIRE (true);
+	PGParse::Scanner scanner;
+	std::size_t len = strlen(bytes);
+	scanner.scan(bytes, len+1);
+	int j = 0;
+	for (
+		PGParse::TokenList::const_iterator i = scanner.tokensBegin();
+		i != scanner.tokensEnd();
+		i ++, j ++
+	) {
+		//std::cout << i->offset() << std::endl;
+		REQUIRE(j < 5);
+		REQUIRE(i->offset() == correct[j].offset());
+		REQUIRE(i->id() == correct[j].id());
+	}
+}
+
 
 #if 0
 

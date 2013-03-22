@@ -39,6 +39,9 @@ const TokenMeta token_data[] = {
 	{"string literal",	 			LITERAL_TOKEN},
 	{"dollar quote string literal",	 		LITERAL_TOKEN},
 	{"national character flag",			LITERAL_TOKEN},
+	{"dentifier",					IDENTIFIER_TOKEN},
+	{"double-quote identifier",			IDENTIFIER_TOKEN},
+	{"unicode identifier",				IDENTIFIER_TOKEN},
 	{"whitespace",	 				WHITESPACE_TOKEN},
 	{"comment",	 				COMMENT_TOKEN},
 	{"token types sentinal", 			INVALID_TOKEN},
@@ -46,11 +49,14 @@ const TokenMeta token_data[] = {
 	{"unterminated bit string",			ERROR_TOKEN},
 	{"unterminated hex string",			ERROR_TOKEN},
 	{"unterminated quoted string",			ERROR_TOKEN},
+	{"unterminated quoted identifier",		ERROR_TOKEN},
 	{"unterminated dollar quoted string",		ERROR_TOKEN},
 	{"standard-conforming strings are disabled",	ERROR_TOKEN},
 	{"invalid unicode escape character",		ERROR_TOKEN},
 	{"invalid unicode surrogate pair",		ERROR_TOKEN},
 	{"malformed dollar quote",			ERROR_TOKEN},
+	{"zero-length quoted identifier",		ERROR_TOKEN},
+	{"zero-length unicode identifier",		ERROR_TOKEN},
 	{"error sentinal",				INVALID_TOKEN},
 	{"final sentinal", 				INVALID_TOKEN}
 };
@@ -59,6 +65,7 @@ const TokenMeta token_data[] = {
 const char *token_category_strings[] = {
 	"INVALID_TOKEN",
 	"LITERAL_TOKEN",
+	"IDENTIFIER_TOKEN",
 	"UNRESERVED_KEYWORD",
 	"RESERVED_KEYWORD",
 	"TYPE_FUNC_NAME_KEYWORD",

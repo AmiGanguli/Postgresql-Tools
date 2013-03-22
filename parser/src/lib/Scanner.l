@@ -37,7 +37,8 @@ namespace PGParse { struct ScannerState
 		  position(0),
 		  start_of_token(-1),
 		  standard_conforming_strings(false),
-		  dolqstart(0)
+		  dolqstart(0),
+		  earlier_error(false)
 	{}
 
 	~ScannerState()
@@ -67,6 +68,7 @@ namespace PGParse { struct ScannerState
 	size_t 		start_of_token;
 	bool		standard_conforming_strings;
 	char *		dolqstart;
+	bool		earlier_error;
 };}
 
 
@@ -114,6 +116,8 @@ static bool scanner_isspace(char ch);
 
 #define END_TOKEN(id)		yyextra->tokens.push_back(PGParse::Token(yyextra->start_of_token, id)); \
 				yyextra->position += yyleng
+
+#define TOKEN_LEN()		(yyextra->position - yyextra->start_of_token + yyleng)
 
 %}
 
@@ -698,22 +702,88 @@ other			.
 			yyterminate();
 		}
 
+{xdstart}	{
+			/** ########## Double-quote identifiers ##########
+			 */
+			START_TOKEN();
+			BEGIN(xd);
+		}
+{xuistart}	{
+			/** ########## Quoted identifiers w. unicode ##########
+			 */
+			START_TOKEN();
+			BEGIN(xui);
+		}
+<xd>{xdstop}	{
+			/**
+			 * Original parser truncates long identifiers. That doesn't work
+			 * for us, but long identifiers aren't an error either, so we
+			 * have to treat them normally.  It's up to a higher level to
+			 * truncate them and perhaps provide the user with a warning.
+			 */
+			BEGIN(INITIAL);
+			// Token length includes the two quotes.
+			if (TOKEN_LEN() ==2) {
+				END_TOKEN(PGParse::ZERO_LENGTH_QUOTED_IDENTIFIER_E);
+			} else {
+				END_TOKEN(PGParse::DQ_IDENTIFIER_T);
+			}
+		}
+<xui>{dquote} {
+			yyless(1);
+			if (TOKEN_LEN() == 2) {
+				// We want to continue to suck up any possible UESCAPE
+				// after the quote, but if the identifier length is 0
+				// we need to capture that information now.
+				//
+				yyextra->earlier_error = true;
+			}
+			CONTINUE_TOKEN();
+			/* handle possible UESCAPE in xuiend mode */
+			BEGIN(xuiend);
+		}
+<xuiend>{whitespace} { }
+<xuiend>{other} |
+<xuiend>{xustop1} {
+			/* no UESCAPE after the quote, throw back everything */
+			yyless(0);
+			BEGIN(INITIAL);
+			if (yyextra->earlier_error) {
+				END_TOKEN(PGParse::ZERO_LENGTH_UNICODE_IDENTIFIER_E);
+				yyextra->earlier_error = false;
+			} else {
+				END_TOKEN(PGParse::UNICODE_IDENTIFIER_T);
+			}
+		}
+<xuiend>{xustop2}	{
+			/* Original parser validates the unicode characters.  This
+			 * has been stripped out of this level (for now).
+			 *
+			/* found UESCAPE after the end quote */
+			if (yyextra->earlier_error) {
+				END_TOKEN(PGParse::ZERO_LENGTH_UNICODE_IDENTIFIER_E);
+				yyextra->earlier_error = false;
+			} else {
+				END_TOKEN(PGParse::UNICODE_IDENTIFIER_T);
+			}
+		}
+<xd,xui>{xddouble}	{
+				CONTINUE_TOKEN();
+		}
+<xd,xui>{xdinside}	{
+				CONTINUE_TOKEN();
+		}
+<xd,xui><<EOF>>		{
+				END_TOKEN(PGParse::UNTERMINATED_QUOTED_IDENTIFIER_E);
+				yyterminate();
+		}
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+{xufailed}	{
+			/* throw back all but the initial u/U */
+			yyless(1);
+			/* and treat it as {identifier} */
+			END_TOKEN(PGParse::IDENTIFIER_T);
+		}
 		
 <<EOF>>		{
 			yyterminate();
