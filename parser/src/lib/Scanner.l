@@ -695,6 +695,7 @@ other			.
 		}
 <xdolq><<EOF>>	{ 
 			END_TOKEN(PGParse::UNTERMINATED_DOLQUOTE_STRING_E);
+			yyterminate();
 		}
 
 

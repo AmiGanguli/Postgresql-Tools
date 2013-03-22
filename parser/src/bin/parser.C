@@ -209,6 +209,43 @@ TEST_CASE("Scanner::scan/quote2", "Extended single quotes.")
 	}
 }
 
+TEST_CASE("Scanner::scan/dolquote1", "Dollar quotes.")
+{
+	const char *bytes = " $hello$ $world$  $hello$ $stuff$ this is some new $un$stuff$ $jump $jump$ ";
+	//                   0000000000111111111122222222223333333333444444444455555555556666666666777777777788888888889
+	//                   0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890
+	PGParse::Token correct[] = {
+		{0, PGParse::WHITESPACE_T},
+		{1, PGParse::DOLQ_STRING_T},
+		{25, PGParse::WHITESPACE_T},
+		{26, PGParse::DOLQ_STRING_T},
+		{61, PGParse::WHITESPACE_T},
+		{62, PGParse::MALFORMED_DOLLAR_QUOTE_E},
+		{63, PGParse::INVALID},
+		{64, PGParse::INVALID},
+		{65, PGParse::INVALID},
+		{66, PGParse::INVALID},
+		{67, PGParse::WHITESPACE_T},
+		{68, PGParse::UNTERMINATED_DOLQUOTE_STRING_E},
+		{75, PGParse::INVALID}       // FIXME!!!
+	};
+	REQUIRE (true);
+	PGParse::Scanner scanner;
+	std::size_t len = strlen(bytes);
+	scanner.scan(bytes, len+1);
+	int j = 0;
+	for (
+		PGParse::TokenList::const_iterator i = scanner.tokensBegin();
+		i != scanner.tokensEnd();
+		i ++, j ++
+	) {
+		//std::cout << i->offset() << std::endl;
+		REQUIRE(j < 14);
+		REQUIRE(i->offset() == correct[j].offset());
+		REQUIRE(i->id() == correct[j].id());
+	}
+}
+
 // FIXME: lots of escape code cases to test.  Probably need to revisit this
 //        anyway, since we should either pass the escape sequences untouched
 //        (simplifying the lexer) or actually parse them properly here and
