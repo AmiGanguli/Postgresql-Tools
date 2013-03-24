@@ -31,8 +31,7 @@ TEST_CASE("Scanner::scan/sql-comments1", "SQL-style comments")
 		{0, PGParse::WHITESPACE_T},
 		{4, PGParse::COMMENT_T},
 		{24, PGParse::WHITESPACE_T},
-		{28, PGParse::COMMENT_T},
-		{31, PGParse::INVALID}       // FIXME!!!
+		{28, PGParse::COMMENT_T}
 	};
 	REQUIRE (true);
 	PGParse::Scanner scanner;
@@ -45,10 +44,11 @@ TEST_CASE("Scanner::scan/sql-comments1", "SQL-style comments")
 		i ++, j ++
 	) {
 		//std::cout << i->offset() << std::endl;
-		REQUIRE(j < 6);
+		REQUIRE(j < 4);
 		REQUIRE(i->offset() == correct[j].offset());
 		REQUIRE(i->id() == correct[j].id());
 	}
+	REQUIRE(j == 4);
 }
 
 TEST_CASE("Scanner::scan/c-comments1", "C-style comments")
@@ -64,8 +64,7 @@ TEST_CASE("Scanner::scan/c-comments1", "C-style comments")
 		{30, PGParse::WHITESPACE_T},
 		{31, PGParse::COMMENT_T},
 		{45, PGParse::WHITESPACE_T},
-		{47, PGParse::UNTERMINATED_C_COMMENT_E},
-		{58, PGParse::INVALID}       // FIXME!!!
+		{47, PGParse::UNTERMINATED_C_COMMENT_E}
 	};
 	REQUIRE (true);
 	PGParse::Scanner scanner;
@@ -82,6 +81,7 @@ TEST_CASE("Scanner::scan/c-comments1", "C-style comments")
 		REQUIRE(i->offset() == correct[j].offset());
 		REQUIRE(i->id() == correct[j].id());
 	}
+	REQUIRE(j == 8);
 }
 
 TEST_CASE("Scanner::scan/bit-string1", "Binary bit strings.")
@@ -98,8 +98,7 @@ TEST_CASE("Scanner::scan/bit-string1", "Binary bit strings.")
 		{10, PGParse::WHITESPACE_T},
 		{11, PGParse::BIT_STRING_T},
 		{21, PGParse::WHITESPACE_T},
-		{23, PGParse::UNTERMINATED_BIT_STRING_E},
-		{27, PGParse::INVALID}       // FIXME!!!
+		{23, PGParse::UNTERMINATED_BIT_STRING_E}
 	};
 	REQUIRE (true);
 	PGParse::Scanner scanner;
@@ -116,6 +115,7 @@ TEST_CASE("Scanner::scan/bit-string1", "Binary bit strings.")
 		REQUIRE(i->offset() == correct[j].offset());
 		REQUIRE(i->id() == correct[j].id());
 	}
+	REQUIRE(j == 6);
 }
 
 TEST_CASE("Scanner::scan/hex-string1", "Binary hex strings.")
@@ -132,8 +132,7 @@ TEST_CASE("Scanner::scan/hex-string1", "Binary hex strings.")
 		{10, PGParse::WHITESPACE_T},
 		{11, PGParse::HEX_STRING_T},
 		{21, PGParse::WHITESPACE_T},
-		{23, PGParse::UNTERMINATED_HEX_STRING_E},
-		{27, PGParse::INVALID}       // FIXME!!!
+		{23, PGParse::UNTERMINATED_HEX_STRING_E}
 	};
 	REQUIRE (true);
 	PGParse::Scanner scanner;
@@ -149,6 +148,8 @@ TEST_CASE("Scanner::scan/hex-string1", "Binary hex strings.")
 		REQUIRE(i->offset() == correct[j].offset());
 		REQUIRE(i->id() == correct[j].id());
 	}
+	REQUIRE(j == 6);
+
 }
 
 TEST_CASE("Scanner::scan/quote1", "Simple single quotes.")
@@ -160,8 +161,7 @@ TEST_CASE("Scanner::scan/quote1", "Simple single quotes.")
 		{0, PGParse::WHITESPACE_T},
 		{1, PGParse::STRING_T},
 		{14, PGParse::WHITESPACE_T},
-		{15, PGParse::UNTERMINATED_QUOTED_STRING_E},
-		{28, PGParse::INVALID}       // FIXME!!!
+		{15, PGParse::UNTERMINATED_QUOTED_STRING_E}
 	};
 	REQUIRE (true);
 	PGParse::Scanner scanner;
@@ -178,6 +178,7 @@ TEST_CASE("Scanner::scan/quote1", "Simple single quotes.")
 		REQUIRE(i->offset() == correct[j].offset());
 		REQUIRE(i->id() == correct[j].id());
 	}
+	REQUIRE(j == 4);
 }
 
 TEST_CASE("Scanner::scan/quote2", "Extended single quotes.")
@@ -189,8 +190,7 @@ TEST_CASE("Scanner::scan/quote2", "Extended single quotes.")
 		{0, PGParse::WHITESPACE_T},
 		{1, PGParse::STRING_T},
 		{15, PGParse::WHITESPACE_T},
-		{16, PGParse::UNTERMINATED_QUOTED_STRING_E},
-		{30, PGParse::INVALID}       // FIXME!!!
+		{16, PGParse::UNTERMINATED_QUOTED_STRING_E}
 	};
 	REQUIRE (true);
 	PGParse::Scanner scanner;
@@ -207,6 +207,7 @@ TEST_CASE("Scanner::scan/quote2", "Extended single quotes.")
 		REQUIRE(i->offset() == correct[j].offset());
 		REQUIRE(i->id() == correct[j].id());
 	}
+	REQUIRE(j == 4);
 }
 
 // FIXME: lots of escape code cases to test.  Probably need to revisit this
@@ -232,8 +233,7 @@ TEST_CASE("Scanner::scan/dolquote1", "Dollar quotes.")
 		{65, PGParse::INVALID},
 		{66, PGParse::INVALID},
 		{67, PGParse::WHITESPACE_T},
-		{68, PGParse::UNTERMINATED_DOLQUOTE_STRING_E},
-		{75, PGParse::INVALID}       // FIXME!!!
+		{68, PGParse::UNTERMINATED_DOLQUOTE_STRING_E}
 	};
 	REQUIRE (true);
 	PGParse::Scanner scanner;
@@ -246,10 +246,11 @@ TEST_CASE("Scanner::scan/dolquote1", "Dollar quotes.")
 		i ++, j ++
 	) {
 		//std::cout << i->offset() << std::endl;
-		REQUIRE(j < 14);
+		REQUIRE(j < 12);
 		REQUIRE(i->offset() == correct[j].offset());
 		REQUIRE(i->id() == correct[j].id());
 	}
+	REQUIRE(j == 12);
 }
 
 TEST_CASE("Scanner::scan/quoted-identifier", "Quoted identifiers")
@@ -261,8 +262,7 @@ TEST_CASE("Scanner::scan/quoted-identifier", "Quoted identifiers")
 		{0, PGParse::WHITESPACE_T},
 		{1, PGParse::DQ_IDENTIFIER_T},
 		{14, PGParse::WHITESPACE_T},
-		{16, PGParse::UNTERMINATED_QUOTED_IDENTIFIER_E},
-		{20, PGParse::INVALID}       // FIXME!!!
+		{16, PGParse::UNTERMINATED_QUOTED_IDENTIFIER_E}
 	};
 	REQUIRE (true);
 	PGParse::Scanner scanner;
@@ -275,10 +275,11 @@ TEST_CASE("Scanner::scan/quoted-identifier", "Quoted identifiers")
 		i ++, j ++
 	) {
 		//std::cout << i->offset() << std::endl;
-		REQUIRE(j < 5);
+		REQUIRE(j < 4);
 		REQUIRE(i->offset() == correct[j].offset());
 		REQUIRE(i->id() == correct[j].id());
 	}
+	REQUIRE(j == 4);
 }
 
 
