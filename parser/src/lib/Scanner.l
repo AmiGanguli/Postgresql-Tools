@@ -895,7 +895,14 @@ other			.
 			ADD_TOKEN(PGParse::FLOAT_T);
 		}
 		
-		
+{identifier}	{
+			PGParse::TokenId id = PGParse::Token::keywordToId(yytext);
+			if (id == PGParse::INVALID) {
+				ADD_TOKEN(PGParse::IDENTIFIER_T);
+			} else {
+				ADD_TOKEN(id);
+			}
+		}		
 		
 		
 {other}		{

@@ -228,10 +228,7 @@ TEST_CASE("Scanner::scan/dolquote1", "Dollar quotes.")
 		{26, PGParse::DOLQ_STRING_T},
 		{61, PGParse::WHITESPACE_T},
 		{62, PGParse::MALFORMED_DOLLAR_QUOTE_E},
-		{63, PGParse::INVALID},
-		{64, PGParse::INVALID},
-		{65, PGParse::INVALID},
-		{66, PGParse::INVALID},
+		{63, PGParse::IDENTIFIER_T},
 		{67, PGParse::WHITESPACE_T},
 		{68, PGParse::UNTERMINATED_DOLQUOTE_STRING_E}
 	};
@@ -245,12 +242,12 @@ TEST_CASE("Scanner::scan/dolquote1", "Dollar quotes.")
 		i != scanner.tokensEnd();
 		i ++, j ++
 	) {
-		//std::cout << i->offset() << std::endl;
-		REQUIRE(j < 12);
+		//std::cout << i->offset() << i->idString() << std::endl;
+		REQUIRE(j < 9);
 		REQUIRE(i->offset() == correct[j].offset());
 		REQUIRE(i->id() == correct[j].id());
 	}
-	REQUIRE(j == 12);
+	REQUIRE(j == 9);
 }
 
 TEST_CASE("Scanner::scan/quoted-identifier", "Quoted identifiers")
@@ -274,7 +271,7 @@ TEST_CASE("Scanner::scan/quoted-identifier", "Quoted identifiers")
 		i != scanner.tokensEnd();
 		i ++, j ++
 	) {
-		//std::cout << i->offset() << std::endl;
+		//std::cout << i->offset() << i->idString() << std::endl;
 		REQUIRE(j < 4);
 		REQUIRE(i->offset() == correct[j].offset());
 		REQUIRE(i->id() == correct[j].id());
@@ -410,5 +407,41 @@ TEST_CASE("Scanner::scan/numbers1", "Numeric literals")
 		REQUIRE(i->id() == correct[j].id());
 	}
 	REQUIRE(j == 9);
+}
+
+TEST_CASE("Scanner::scan/identifiers1", "Bare identifiers and keywords")
+{
+	const char *bytes = "if then end if hello world";
+	//                   000000000011111111112222222222
+	//                   012345678901234567890123456789
+	PGParse::Token correct[] = {
+		{0, PGParse::IF_P_KW},		// 0
+		{2, PGParse::WHITESPACE_T},	// 1
+		{3, PGParse::THEN_KW},		// 2
+		{7, PGParse::WHITESPACE_T},	// 3
+		{8, PGParse::END_P_KW},		// 4
+		{11, PGParse::WHITESPACE_T},	// 5
+		{12, PGParse::IF_P_KW},		// 6
+		{14, PGParse::WHITESPACE_T},	// 7
+		{15, PGParse::IDENTIFIER_T},	// 8
+		{20, PGParse::WHITESPACE_T},	// 9
+		{21, PGParse::IDENTIFIER_T}	// 10
+	};
+	REQUIRE (true);
+	PGParse::Scanner scanner;
+	std::size_t len = strlen(bytes);
+	scanner.scan(bytes, len);
+	int j = 0;
+	for (
+		PGParse::TokenList::const_iterator i = scanner.tokensBegin();
+		i != scanner.tokensEnd();
+		i ++, j ++
+	) {
+		//std::cout << i->offset() << i->idString() << std::endl;
+		REQUIRE(j < 11);
+		REQUIRE(i->offset() == correct[j].offset());
+		REQUIRE(i->id() == correct[j].id());
+	}
+	REQUIRE(j == 11);
 }
 
