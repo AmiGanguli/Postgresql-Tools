@@ -347,7 +347,7 @@ identifier		{ident_start}{ident_cont}*
 
 typecast		"::"
 dot_dot			\.\.
-colon_equals	":="
+colon_equals		":="
 
 /*
  * "self" is the set of chars that should be returned as single-character
@@ -788,6 +788,91 @@ other			.
 <<EOF>>		{
 			yyterminate();
 		}
+		
+{typecast}	{
+			ADD_TOKEN(PGParse::TYPECAST_T);
+		}
+
+{dot_dot}	{
+			ADD_TOKEN(PGParse::DOTDOT_T);
+		}
+
+{colon_equals}	{
+			ADD_TOKEN(PGParse::COLONEQUALS_T);
+		}
+
+{self}		{
+			ADD_TOKEN(PGParse::OPERATOR_T);
+		}
+
+{operator}	{
+			/*
+			 * Check for embedded slash-star or dash-dash; those
+			 * are comment starts, so operator must stop there.
+			 * Note that slash-star or dash-dash at the first
+			 * character will match a prior rule, not this one.
+			 */
+			int	nchars = yyleng;
+			char*	slashstar = strstr(yytext, "/*");
+			char*	dashdash = strstr(yytext, "--");
+
+			if (slashstar && dashdash)
+			{
+				/* if both appear, take the first one */
+				if (slashstar > dashdash) {
+					slashstar = dashdash;
+				}
+			} else if (!slashstar) {
+				slashstar = dashdash;
+			}
+			if (slashstar) {
+				nchars = slashstar - yytext;
+			}
+			
+			/*
+			 * For SQL compatibility, '+' and '-' cannot be the
+			 * last char of a multi-char operator unless the operator
+			 * contains chars that are not in SQL operators.
+			 * The idea is to lex '=-' as two operators, but not
+			 * to forbid operator names like '?-' that could not be
+			 * sequences of SQL operators.
+			 */
+			while (
+				nchars > 1 &&
+				(yytext[nchars-1] == '+' ||
+				 yytext[nchars-1] == '-')
+			)
+			{
+				int ic;
+				for (ic = nchars-2; ic >= 0; ic--)
+				{
+					if (strchr("~!@#^&|`?%", yytext[ic])) {
+						break;
+					}
+				}
+				if (ic >= 0) {
+					break; /* found a char that makes it OK */
+				}
+				nchars--; /* else remove the +/-, and check again */
+			}
+			if (nchars < yyleng)
+			{
+				/* Strip the unwanted chars from the token */
+				yyless(nchars);
+			}
+			ADD_TOKEN(PGParse::OPERATOR_T);
+		}
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
 		
 {other}		{
 			ADD_TOKEN(PGParse::INVALID);

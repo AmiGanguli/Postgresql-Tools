@@ -282,6 +282,73 @@ TEST_CASE("Scanner::scan/quoted-identifier", "Quoted identifiers")
 	REQUIRE(j == 4);
 }
 
+TEST_CASE("Scanner::scan/operators1", "Misc operators")
+{
+	const char *bytes = ":: .. := , ( ) [ ] . ; : + - * / % ^ < > = ~!@#^&|`?+-*/%<>=";
+	//                   0000000000111111111122222222223333333333444444444455555555556666666666777777777788888888889
+	//                   0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890
+	PGParse::Token correct[] = {
+		{0, PGParse::TYPECAST_T},	// 0
+		{2, PGParse::WHITESPACE_T},	// 1
+		{3, PGParse::DOTDOT_T},		// 2
+		{5, PGParse::WHITESPACE_T},	// 3
+		{6, PGParse::COLONEQUALS_T},	// 4
+		{8, PGParse::WHITESPACE_T},	// 5
+		{9, PGParse::OPERATOR_T},	// 6
+		{10, PGParse::WHITESPACE_T},	// 7
+		{11, PGParse::OPERATOR_T},	// 8
+		{12, PGParse::WHITESPACE_T},	// 9
+		{13, PGParse::OPERATOR_T},	// 10
+		{14, PGParse::WHITESPACE_T},	// 11
+		{15, PGParse::OPERATOR_T},	// 12
+		{16, PGParse::WHITESPACE_T},	// 13
+		{17, PGParse::OPERATOR_T},	// 14
+		{18, PGParse::WHITESPACE_T},	// 15
+		{19, PGParse::OPERATOR_T},	// 16
+		{20, PGParse::WHITESPACE_T},	// 17
+		{21, PGParse::OPERATOR_T},	// 18
+		{22, PGParse::WHITESPACE_T},	// 19
+		{23, PGParse::OPERATOR_T},	// 20
+		{24, PGParse::WHITESPACE_T},	// 21
+		{25, PGParse::OPERATOR_T},	// 22
+		{26, PGParse::WHITESPACE_T},	// 23
+		{27, PGParse::OPERATOR_T},	// 24
+		{28, PGParse::WHITESPACE_T},	// 25
+		{29, PGParse::OPERATOR_T},	// 26
+		{30, PGParse::WHITESPACE_T},	// 27
+		{31, PGParse::OPERATOR_T},	// 28
+		{32, PGParse::WHITESPACE_T},	// 29
+		{33, PGParse::OPERATOR_T},	// 30
+		{34, PGParse::WHITESPACE_T},	// 31
+		{35, PGParse::OPERATOR_T},	// 32
+		{36, PGParse::WHITESPACE_T},	// 33
+		{37, PGParse::OPERATOR_T},	// 34
+		{38, PGParse::WHITESPACE_T},	// 35
+		{39, PGParse::OPERATOR_T},	// 36
+		{40, PGParse::WHITESPACE_T},	// 37
+		{41, PGParse::OPERATOR_T},	// 38
+		{42, PGParse::WHITESPACE_T},	// 39
+		{43, PGParse::OPERATOR_T},	// 40
+		{60, PGParse::INVALID}		// 41
+	};
+	REQUIRE (true);
+	PGParse::Scanner scanner;
+	std::size_t len = strlen(bytes);
+	scanner.scan(bytes, len+1);
+	int j = 0;
+	for (
+		PGParse::TokenList::const_iterator i = scanner.tokensBegin();
+		i != scanner.tokensEnd();
+		i ++, j ++
+	) {
+		//std::cout << i->offset() << i->idString() << std::endl;
+		REQUIRE(j < 42);
+		REQUIRE(i->offset() == correct[j].offset());
+		REQUIRE(i->id() == correct[j].id());
+	}
+	REQUIRE(j == 42);
+}
+
 
 #if 0
 

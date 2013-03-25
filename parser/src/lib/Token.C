@@ -44,7 +44,12 @@ const TokenMeta token_data[] = {
 	{"unicode identifier",				IDENTIFIER_TOKEN},
 	{"whitespace",	 				WHITESPACE_TOKEN},
 	{"comment",	 				COMMENT_TOKEN},
+	{"typecast",	 				OPERATOR_TOKEN},
+	{"dotdot",	 				OPERATOR_TOKEN},
+	{"colonequals",	 				OPERATOR_TOKEN},
+	{"operator",	 				OPERATOR_TOKEN},
 	{"token types sentinal", 			INVALID_TOKEN},
+
 	{"unterminated c-style comment",		ERROR_TOKEN},
 	{"unterminated bit string",			ERROR_TOKEN},
 	{"unterminated hex string",			ERROR_TOKEN},
@@ -58,6 +63,7 @@ const TokenMeta token_data[] = {
 	{"zero-length quoted identifier",		ERROR_TOKEN},
 	{"zero-length unicode identifier",		ERROR_TOKEN},
 	{"error sentinal",				INVALID_TOKEN},
+
 	{"final sentinal", 				INVALID_TOKEN}
 };
 #undef PG_KEYWORD
@@ -72,6 +78,7 @@ const char *token_category_strings[] = {
 	"COL_NAME_KEYWORD",
 	"WHITESPACE_TOKEN",
 	"COMMENT_TOKEN",
+	"OPERATOR_TOKEN",
 	"ERROR_TOKEN"
 };
 
