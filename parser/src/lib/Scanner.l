@@ -867,7 +867,33 @@ other			.
 			ADD_TOKEN(PGParse::PARAM_T);
 		}
 		
-		
+{integer}	{
+			ADD_TOKEN(PGParse::INTEGER_T);
+		}
+{decimal}	{
+			ADD_TOKEN(PGParse::FLOAT_T);
+		}
+{decimalfail}	{
+			ADD_TOKEN(PGParse::INTEGER_T);
+		}
+{real}		{
+			ADD_TOKEN(PGParse::FLOAT_T);
+		}
+{realfail1}	{
+			/*
+			 * throw back the [Ee], and treat as {decimal}.  Note
+			 * that it is possible the input is actually {integer},
+			 * but since this case will almost certainly lead to a
+			 * syntax error anyway, we don't bother to distinguish.
+			 */
+			yyless(yyleng-1);
+			ADD_TOKEN(PGParse::FLOAT_T);
+		}
+{realfail2}	{
+			/* throw back the [Ee][+-], and proceed as above */
+			yyless(yyleng-2);
+			ADD_TOKEN(PGParse::FLOAT_T);
+		}
 		
 		
 		

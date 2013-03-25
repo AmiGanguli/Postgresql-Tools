@@ -378,4 +378,37 @@ TEST_CASE("Scanner::scan/param1", "Numbered parameters")
 	REQUIRE(j == 5);
 }
 
+TEST_CASE("Scanner::scan/numbers1", "Numeric literals")
+{
+	const char *bytes = "123 0 31.322 3.222e32 4.11e-3";
+	//                   000000000011111111112222222222
+	//                   012345678901234567890123456789
+	PGParse::Token correct[] = {
+		{0, PGParse::INTEGER_T},	// 0
+		{3, PGParse::WHITESPACE_T},	// 1
+		{4, PGParse::INTEGER_T},	// 2
+		{5, PGParse::WHITESPACE_T},	// 3
+		{6, PGParse::FLOAT_T},		// 4
+		{12, PGParse::WHITESPACE_T},	// 5
+		{13, PGParse::FLOAT_T},		// 6
+		{21, PGParse::WHITESPACE_T},	// 7
+		{22, PGParse::FLOAT_T}		// 8
+	};
+	REQUIRE (true);
+	PGParse::Scanner scanner;
+	std::size_t len = strlen(bytes);
+	scanner.scan(bytes, len);
+	int j = 0;
+	for (
+		PGParse::TokenList::const_iterator i = scanner.tokensBegin();
+		i != scanner.tokensEnd();
+		i ++, j ++
+	) {
+		//std::cout << i->offset() << i->idString() << std::endl;
+		REQUIRE(j < 9);
+		REQUIRE(i->offset() == correct[j].offset());
+		REQUIRE(i->id() == correct[j].id());
+	}
+	REQUIRE(j == 9);
+}
 

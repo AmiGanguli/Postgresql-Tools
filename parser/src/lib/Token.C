@@ -37,6 +37,8 @@ const TokenMeta token_data[] = {
 	{"hex string",					LITERAL_TOKEN},
 	{"unicode escape string", 			LITERAL_TOKEN},
 	{"string literal",	 			LITERAL_TOKEN},
+	{"integer literal",	 			LITERAL_TOKEN},
+	{"float literal",	 			LITERAL_TOKEN},
 	{"dollar quote string literal",	 		LITERAL_TOKEN},
 	{"national character flag",			LITERAL_TOKEN},
 	{"dentifier",					IDENTIFIER_TOKEN},
