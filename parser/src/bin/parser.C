@@ -267,7 +267,7 @@ TEST_CASE("Scanner::scan/quoted-identifier", "Quoted identifiers")
 	REQUIRE (true);
 	PGParse::Scanner scanner;
 	std::size_t len = strlen(bytes);
-	scanner.scan(bytes, len+1);
+	scanner.scan(bytes, len);
 	int j = 0;
 	for (
 		PGParse::TokenList::const_iterator i = scanner.tokensBegin();
@@ -328,13 +328,12 @@ TEST_CASE("Scanner::scan/operators1", "Misc operators")
 		{40, PGParse::WHITESPACE_T},	// 37
 		{41, PGParse::OPERATOR_T},	// 38
 		{42, PGParse::WHITESPACE_T},	// 39
-		{43, PGParse::OPERATOR_T},	// 40
-		{60, PGParse::INVALID}		// 41
+		{43, PGParse::OPERATOR_T}	// 40
 	};
 	REQUIRE (true);
 	PGParse::Scanner scanner;
 	std::size_t len = strlen(bytes);
-	scanner.scan(bytes, len+1);
+	scanner.scan(bytes, len);
 	int j = 0;
 	for (
 		PGParse::TokenList::const_iterator i = scanner.tokensBegin();
@@ -342,11 +341,11 @@ TEST_CASE("Scanner::scan/operators1", "Misc operators")
 		i ++, j ++
 	) {
 		//std::cout << i->offset() << i->idString() << std::endl;
-		REQUIRE(j < 42);
+		REQUIRE(j < 41);
 		REQUIRE(i->offset() == correct[j].offset());
 		REQUIRE(i->id() == correct[j].id());
 	}
-	REQUIRE(j == 42);
+	REQUIRE(j == 41);
 }
 
 
