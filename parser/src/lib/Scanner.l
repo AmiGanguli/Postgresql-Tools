@@ -863,11 +863,9 @@ other			.
 			ADD_TOKEN(PGParse::OPERATOR_T);
 		}
 		
-		
-		
-		
-		
-		
+{param}		{
+			ADD_TOKEN(PGParse::PARAM_T);
+		}
 		
 		
 		

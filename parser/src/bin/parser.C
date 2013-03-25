@@ -348,44 +348,34 @@ TEST_CASE("Scanner::scan/operators1", "Misc operators")
 	REQUIRE(j == 41);
 }
 
-
-#if 0
-
-int
-main(int argc, char **argv)
+TEST_CASE("Scanner::scan/param1", "Numbered parameters")
 {
-	bool passed = true;
-	for (PGParse::TokenId i = PGParse::INVALID; i < PGParse::KW_SENTINAL; i = PGParse::TokenId(i + 1)) {
-		PGParse::Token token(0, i);
-		const char *text = token.idString();
-		PGParse::TokenId id = PGParse::Token::keywordToId(text);
-		if (id != i) {
-			passed = false;
-		}
-	}
-	if (passed) {
-		std::cout << "Round-trip conversions passed." << std::endl;
-	} else {
-		std::cout << "Round-trip conversions failed." << std::endl;
-	}
-	if (PGParse::Token::keywordToId("aCcEss") == PGParse::ACCESS_KW) {
-		std::cout << "Case insensitive conversion passed." << std::endl;
-	} else {
-		std::cout << "Case insensitive conversion failed." << std::endl;
-	}
-
-	const char *bytes = " n'some text' Hello world B'ABCD' b'abcd' /*comment */ x'12ff'  /*  stuff /* nested */ */ x'22";
-	//                   00000000001111111111222222222233333333334444444444555555555566666666667777777777888888888899999
-        //                   01234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234
+	const char *bytes = "$1 $2 $3";
+	//                   00000000001111111111
+	//                   01234567890123456789
+	PGParse::Token correct[] = {
+		{0, PGParse::PARAM_T},		// 0
+		{2, PGParse::WHITESPACE_T},	// 1
+		{3, PGParse::PARAM_T},		// 2
+		{5, PGParse::WHITESPACE_T},	// 3
+		{6, PGParse::PARAM_T}		// 4
+	};
+	REQUIRE (true);
 	PGParse::Scanner scanner;
 	std::size_t len = strlen(bytes);
-	scanner.scan(bytes, len+1);
-
-	for (PGParse::TokenList::const_iterator i = scanner.tokensBegin(); i != scanner.tokensEnd(); i ++) {
-		std::cout << "token: " << i->idString() << " at " << i->offset() << std::endl;
+	scanner.scan(bytes, len);
+	int j = 0;
+	for (
+		PGParse::TokenList::const_iterator i = scanner.tokensBegin();
+		i != scanner.tokensEnd();
+		i ++, j ++
+	) {
+		//std::cout << i->offset() << i->idString() << std::endl;
+		REQUIRE(j < 5);
+		REQUIRE(i->offset() == correct[j].offset());
+		REQUIRE(i->id() == correct[j].id());
 	}
-	
-	return 0;
+	REQUIRE(j == 5);
 }
 
-#endif
+

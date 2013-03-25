@@ -48,6 +48,7 @@ const TokenMeta token_data[] = {
 	{"dotdot",	 				OPERATOR_TOKEN},
 	{"colonequals",	 				OPERATOR_TOKEN},
 	{"operator",	 				OPERATOR_TOKEN},
+	{"parameter",	 				PARAMETER_TOKEN},
 	{"token types sentinal", 			INVALID_TOKEN},
 
 	{"unterminated c-style comment",		ERROR_TOKEN},
@@ -79,6 +80,7 @@ const char *token_category_strings[] = {
 	"WHITESPACE_TOKEN",
 	"COMMENT_TOKEN",
 	"OPERATOR_TOKEN",
+	"PARAMETER_TOKEN",
 	"ERROR_TOKEN"
 };
 
