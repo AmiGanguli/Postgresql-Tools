@@ -27,7 +27,9 @@ include_directories(
 add_executable(lexer
 	src/bin/lexer.C
 	src/lib/Token.C
+	src/lib/TokenId.C
 	${FLEX_scanner_OUTPUTS}
+	${PROJECT_BINARY_DIR}/ParserLemon.h
 )
 
 add_custom_command(
@@ -38,7 +40,7 @@ add_custom_command(
 )
 
 add_custom_command(
-	OUTPUT Parser.C ParserLemon.h
+	OUTPUT ${PROJECT_BINARY_DIR}/Parser.C ${PROJECT_BINARY_DIR}/ParserLemon.h
 	COMMAND lemon ParserLemon.y
 	COMMAND cat ParserLemon.c ${PROJECT_SOURCE_DIR}/src/bin/parser.C > Parser.C
 	WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
@@ -47,6 +49,7 @@ add_custom_command(
 
 add_executable(parser
 	${PROJECT_BINARY_DIR}/Parser.C
+	${PROJECT_BINARY_DIR}/ParserLemon.h
 )
 
 	

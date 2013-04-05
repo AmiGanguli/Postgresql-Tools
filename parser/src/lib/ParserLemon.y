@@ -1,12 +1,17 @@
+%token_prefix TK_
 %token_type {int}  
    
 %left PLUS MINUS.   
-%left DIVIDE TIMES.  
+%left SLASH STAR.  
    
 %include {   
 #include <iostream>  
 #include <assert.h>
-#include "Parser.h"
+#include "ParserLemon.h"
+#include "Token.h"
+
+//using namespace PGParse;
+
 }  
    
 %syntax_error {  
@@ -17,8 +22,8 @@ program ::= expr(A).   { std::cout << "Result=" << A << std::endl; }
    
 expr(A) ::= expr(B) MINUS  expr(C).   { A = B - C; }  
 expr(A) ::= expr(B) PLUS  expr(C).   { A = B + C; }  
-expr(A) ::= expr(B) TIMES  expr(C).   { A = B * C; }  
-expr(A) ::= expr(B) DIVIDE expr(C).  { 
+expr(A) ::= expr(B) STAR  expr(C).   { A = B * C; }  
+expr(A) ::= expr(B) SLASH expr(C).  { 
 
 		if(C != 0){
 			A = B / C;

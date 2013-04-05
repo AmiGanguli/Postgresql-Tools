@@ -105,17 +105,22 @@ static bool scanner_isspace(char ch);
  *              macros are used.
  */
 
-#define ADD_TOKEN(id)		yyextra->tokens.push_back(PGParse::Token(yyextra->position, id)); \
-				yyextra->start_of_token = yyextra->position;\
+#define ADD_TOKEN(id)		yyextra->tokens.push_back(PGParse::Token(yyextra->position, yyleng, id)); \
+				yyextra->start_of_token = yyextra->position; \
 				yyextra->position += yyleng
 
-#define START_TOKEN()		yyextra->start_of_token = yyextra->position;\
+#define START_TOKEN()		yyextra->start_of_token = yyextra->position; \
 				yyextra->position += yyleng
 				
 #define CONTINUE_TOKEN()	yyextra->position += yyleng
 
-#define END_TOKEN(id)		yyextra->tokens.push_back(PGParse::Token(yyextra->start_of_token, id)); \
-				yyextra->position += yyleng
+#define END_TOKEN(id)		yyextra->position += yyleng; \
+				yyextra->tokens.push_back(PGParse::Token( \
+					yyextra->start_of_token, \
+					yyextra->position - yyextra->start_of_token, \
+					id \
+				))
+				
 
 #define TOKEN_LEN()		(yyextra->position - yyextra->start_of_token + yyleng)
 
@@ -466,6 +471,10 @@ other			.
 		}
 
 <xc><<EOF>>	{
+			/* We don't want the EOF to be included
+			 * as part of the comment token.
+			 */
+			yyless(yyleng - 1);
 			END_TOKEN(PGParse::UNTERMINATED_C_COMMENT_E);
 			yyterminate();
 		}
@@ -501,6 +510,10 @@ other			.
 		}
 		
 <xb><<EOF>>	{
+			/* We don't want the EOF to be included
+			 * as part of the comment token.
+			 */
+			yyless(yyleng - 1);
 			END_TOKEN(PGParse::UNTERMINATED_BIT_STRING_E);
 			yyterminate();
 		}
@@ -523,6 +536,10 @@ other			.
 			BEGIN(INITIAL);
 		}
 <xh><<EOF>>	{
+			/* We don't want the EOF to be included
+			 * as part of the comment token.
+			 */
+			yyless(yyleng - 1);
 			END_TOKEN(PGParse::UNTERMINATED_HEX_STRING_E);
 			yyterminate();
 		}
@@ -651,6 +668,10 @@ other			.
 			CONTINUE_TOKEN();
 		}
 <xq,xe,xus><<EOF>>	{
+			/* We don't want the EOF to be included
+			 * as part of the comment token.
+			 */
+			yyless(yyleng - 1);
 			END_TOKEN(PGParse::UNTERMINATED_QUOTED_STRING_E);
 			yyterminate();
 		}
@@ -698,6 +719,10 @@ other			.
 			CONTINUE_TOKEN();
 		}
 <xdolq><<EOF>>	{ 
+			/* We don't want the EOF to be included
+			 * as part of the comment token.
+			 */
+			yyless(yyleng - 1);
 			END_TOKEN(PGParse::UNTERMINATED_DOLQUOTE_STRING_E);
 			yyterminate();
 		}
@@ -768,14 +793,18 @@ other			.
 			}
 		}
 <xd,xui>{xddouble}	{
-				CONTINUE_TOKEN();
+			CONTINUE_TOKEN();
 		}
 <xd,xui>{xdinside}	{
-				CONTINUE_TOKEN();
+			CONTINUE_TOKEN();
 		}
 <xd,xui><<EOF>>		{
-				END_TOKEN(PGParse::UNTERMINATED_QUOTED_IDENTIFIER_E);
-				yyterminate();
+			/* We don't want the EOF to be included
+			 * as part of the comment token.
+			 */
+			yyless(yyleng - 1);
+			END_TOKEN(PGParse::UNTERMINATED_QUOTED_IDENTIFIER_E);
+			yyterminate();
 		}
 
 {xufailed}	{
@@ -896,7 +925,7 @@ other			.
 		}
 		
 {identifier}	{
-			PGParse::TokenId id = PGParse::Token::keywordToId(yytext);
+			PGParse::TokenId id = PGParse::keywordToId(yytext);
 			if (id == PGParse::INVALID) {
 				ADD_TOKEN(PGParse::IDENTIFIER_T);
 			} else {

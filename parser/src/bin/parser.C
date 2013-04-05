@@ -7,9 +7,9 @@ int main()
   /* First input: 
       15 / 5
                                 */
-  Parse (pParser, INTEGER, 15);
-  Parse (pParser, DIVIDE, 0);
-  Parse (pParser, INTEGER, 5);
+  Parse (pParser, TK_INTEGER, 15);
+  Parse (pParser, TK_SLASH, 0);
+  Parse (pParser, TK_INTEGER, 5);
   Parse (pParser, 0, 0);
 
   /*  Second input:
@@ -17,9 +17,9 @@ int main()
                                */
 
 
-  Parse (pParser, INTEGER, 50);
-  Parse (pParser, PLUS, 0);
-  Parse (pParser, INTEGER, 125);
+  Parse (pParser, TK_INTEGER, 50);
+  Parse (pParser, TK_PLUS, 0);
+  Parse (pParser, TK_INTEGER, 125);
   Parse (pParser, 0, 0);
 
 
@@ -29,11 +29,11 @@ int main()
 
 
 
-  Parse (pParser, INTEGER, 50);
-  Parse (pParser, TIMES, 0);
-  Parse (pParser, INTEGER, 125);
-  Parse (pParser, PLUS, 0);
-  Parse (pParser, INTEGER, 125);
+  Parse (pParser, TK_INTEGER, 50);
+  Parse (pParser, TK_STAR, 0);
+  Parse (pParser, TK_INTEGER, 125);
+  Parse (pParser, TK_PLUS, 0);
+  Parse (pParser, TK_INTEGER, 125);
   Parse (pParser, 0, 0);
 
 
