@@ -24,10 +24,29 @@ include_directories(
 	${PROJECT_BINARY_DIR}
 )
 
-add_executable(parser
-	src/bin/parser.C
+add_executable(lexer
+	src/bin/lexer.C
 	src/lib/Token.C
 	${FLEX_scanner_OUTPUTS}
 )
 
+add_custom_command(
+	OUTPUT ${PROJECT_BINARY_DIR}/Parser.y
+	COMMAND cp ${PROJECT_SOURCE_DIR}/src/lib/Parser.y Parser.y
+	WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
+	DEPENDS src/lib/Parser.y
+)
 
+add_custom_command(
+	OUTPUT Parser.C
+	COMMAND lemon Parser.y
+	COMMAND cat Parser.c ${PROJECT_SOURCE_DIR}/src/bin/parser.C > Parser.C
+	WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
+	DEPENDS ${PROJECT_BINARY_DIR}/Parser.y
+)
+
+add_executable(parser
+	${PROJECT_BINARY_DIR}/Parser.C
+)
+
+	
