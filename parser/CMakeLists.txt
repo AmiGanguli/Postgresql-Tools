@@ -31,18 +31,18 @@ add_executable(lexer
 )
 
 add_custom_command(
-	OUTPUT ${PROJECT_BINARY_DIR}/Parser.y
-	COMMAND cp ${PROJECT_SOURCE_DIR}/src/lib/Parser.y Parser.y
+	OUTPUT ${PROJECT_BINARY_DIR}/ParserLemon.y
+	COMMAND cp ${PROJECT_SOURCE_DIR}/src/lib/ParserLemon.y ParserLemon.y
 	WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
-	DEPENDS src/lib/Parser.y
+	DEPENDS src/lib/ParserLemon.y
 )
 
 add_custom_command(
-	OUTPUT Parser.C
-	COMMAND lemon Parser.y
-	COMMAND cat Parser.c ${PROJECT_SOURCE_DIR}/src/bin/parser.C > Parser.C
+	OUTPUT Parser.C ParserLemon.h
+	COMMAND lemon ParserLemon.y
+	COMMAND cat ParserLemon.c ${PROJECT_SOURCE_DIR}/src/bin/parser.C > Parser.C
 	WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
-	DEPENDS ${PROJECT_BINARY_DIR}/Parser.y
+	DEPENDS ${PROJECT_BINARY_DIR}/ParserLemon.y
 )
 
 add_executable(parser
