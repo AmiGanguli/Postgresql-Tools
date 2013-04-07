@@ -78,22 +78,24 @@ public:
 	{
 	public:
 		const_iterator()
-			: tokens_(0), flag_filter_(0)
+		: 	tokens_(0), flag_filter_(0), iterator_()
 		{
 		}
 
 		explicit 
 		const_iterator(const TokenList* tokens, int flag_filter)
-			: tokens_(tokens), flag_filter_(flag_filter)
+		: 	tokens_(tokens), 
+			flag_filter_(flag_filter),
+			iterator_(tokens->TokenListBase::begin())
 		{
-			iterator_ = tokens->TokenListBase::begin();
 		}
 
 		explicit 
 		const_iterator(const TokenList* tokens)
-			: tokens_(tokens), flag_filter_(0)
+		: 	tokens_(tokens), 
+			flag_filter_(0),
+			iterator_(tokens->TokenListBase::end())
 		{
-			iterator_ = tokens->TokenListBase::end();
 		}
 		
 	private:
