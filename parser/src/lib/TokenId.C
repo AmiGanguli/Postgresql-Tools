@@ -12,7 +12,7 @@ namespace PGParse {
  */
 struct TokenMeta {
 	const char *text;
-	TokenCategory category;
+	CategoryFlags category;
 	int lemon_id;
 };
 
@@ -62,44 +62,48 @@ TokenMeta token_data[] = {
 	{"star",	 				OPERATOR_TOKEN, -1},
 	{"slash",	 				OPERATOR_TOKEN, -1},
 	{"percent",	 				OPERATOR_TOKEN, -1},
-	{"carat",	 				OPERATOR_TOKEN, -1},
+	{"caret",	 				OPERATOR_TOKEN, -1},
 	{"less than",	 				OPERATOR_TOKEN, -1},
 	{"greater than",				OPERATOR_TOKEN, -1},
 	{"equal",	 				OPERATOR_TOKEN, -1},
 	{"operator",	 				OPERATOR_TOKEN, -1},
 	{"parameter",	 				PARAMETER_TOKEN, -1},
-	{"token types sentinal", 			INVALID_TOKEN, -1},
-	{"unterminated c-style comment",		ERROR_TOKEN, -1},
-	{"unterminated bit string",			ERROR_TOKEN, -1},
-	{"unterminated hex string",			ERROR_TOKEN, -1},
-	{"unterminated quoted string",			ERROR_TOKEN, -1},
-	{"unterminated quoted identifier",		ERROR_TOKEN, -1},
-	{"unterminated dollar quoted string",		ERROR_TOKEN, -1},
-	{"standard-conforming strings are disabled",	ERROR_TOKEN, -1},
-	{"invalid unicode escape character",		ERROR_TOKEN, -1},
-	{"invalid unicode surrogate pair",		ERROR_TOKEN, -1},
-	{"malformed dollar quote",			ERROR_TOKEN, -1},
-	{"zero-length quoted identifier",		ERROR_TOKEN, -1},
-	{"zero-length unicode identifier",		ERROR_TOKEN, -1},
-	{"error sentinal",				INVALID_TOKEN, -1},
+	{"token types sentinal", 			ERROR_TOKEN | INVALID_TOKEN, -1},
+	{"unterminated c-style comment",		ERROR_TOKEN | COMMENT_TOKEN, -1},
+	{"unterminated bit string",			ERROR_TOKEN | LITERAL_TOKEN, -1},
+	{"unterminated hex string",			ERROR_TOKEN | LITERAL_TOKEN, -1},
+	{"unterminated quoted string",			ERROR_TOKEN | LITERAL_TOKEN, -1},
+	{"unterminated quoted identifier",		ERROR_TOKEN | IDENTIFIER_TOKEN, -1},
+	{"unterminated dollar quoted string",		ERROR_TOKEN | LITERAL_TOKEN, -1},
+	{"standard-conforming strings are disabled",	ERROR_TOKEN | LITERAL_TOKEN, -1},
+	{"invalid unicode escape character",		ERROR_TOKEN | LITERAL_TOKEN, -1},
+	{"invalid unicode surrogate pair",		ERROR_TOKEN | LITERAL_TOKEN, -1},
+	{"malformed dollar quote",			ERROR_TOKEN | LITERAL_TOKEN, -1},
+	{"zero-length quoted identifier",		ERROR_TOKEN | IDENTIFIER_TOKEN, -1},
+	{"zero-length unicode identifier",		ERROR_TOKEN | IDENTIFIER_TOKEN, -1},
+	{"error sentinal",				ERROR_TOKEN | INVALID_TOKEN, -1},
 
-	{"final sentinal", 				INVALID_TOKEN, -1}
+	{"final sentinal", 				ERROR_TOKEN | INVALID_TOKEN, -1}
 };
 #undef PG_KEYWORD
 
-const char *token_category_strings[] = {
-	"INVALID_TOKEN",
-	"LITERAL_TOKEN",
-	"IDENTIFIER_TOKEN",
-	"UNRESERVED_KEYWORD",
-	"RESERVED_KEYWORD",
-	"TYPE_FUNC_NAME_KEYWORD",
-	"COL_NAME_KEYWORD",
-	"WHITESPACE_TOKEN",
-	"COMMENT_TOKEN",
-	"OPERATOR_TOKEN",
-	"PARAMETER_TOKEN",
-	"ERROR_TOKEN"
+struct CategoryMeta {
+	const char *text;
+	TokenCategory category;
+};
+const CategoryMeta token_categories[] = {
+	{"INVALID_TOKEN", INVALID_TOKEN},
+	{"LITERAL_TOKEN", LITERAL_TOKEN},
+	{"IDENTIFIER_TOKEN", IDENTIFIER_TOKEN},
+	{"UNRESERVED_KEYWORD", UNRESERVED_KEYWORD},
+	{"RESERVED_KEYWORD", RESERVED_KEYWORD},
+	{"TYPE_FUNC_NAME_KEYWORD", TYPE_FUNC_NAME_KEYWORD},
+	{"COL_NAME_KEYWORD", COL_NAME_KEYWORD},
+	{"WHITESPACE_TOKEN", WHITESPACE_TOKEN},
+	{"COMMENT_TOKEN", COMMENT_TOKEN},
+	{"OPERATOR_TOKEN", OPERATOR_TOKEN},
+	{"PARAMETER_TOKEN", PARAMETER_TOKEN},
+	{"ERROR_TOKEN", ERROR_TOKEN}
 };
 
 struct LemonMeta {
@@ -158,12 +162,6 @@ keywordToId(const char *text, TokenId from, TokenId to)
 	return keywordToId(text, from, middle);
 }
 
-TokenCategory
-category(TokenId id)
-{
-	return token_data[id].category;
-}
-
 int
 lemonId(TokenId id)
 {
@@ -187,10 +185,29 @@ idString(TokenId id)
 	return token_data[id].text;
 }
 
-const char *
-categoryString(TokenCategory cat)
+std::string
+categoryString(CategoryFlags cat)
 {
-	return token_category_strings[cat];
+	std::string ret;
+	int i = 0;
+	while (token_categories[i].category != CATEGORIES_SENTINAL)
+	{
+		if (cat & token_categories[i].category) {
+			ret += token_categories[i].text;
+			if (i) {
+				ret += " ";
+			}
+		}
+		i ++;
+	}
+	return ret;
 }
+
+int 	
+category	(TokenId id)
+{
+	return token_data[id].category;
+}
+
 
 } // PGParse

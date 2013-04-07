@@ -1,6 +1,8 @@
 #if !defined (TOKEN_ID_H)
 #define TOKEN_ID_H
 
+#include <string>
+
 namespace PGParse {
 
 /**
@@ -62,7 +64,7 @@ enum TokenId {
 	STAR_T,
 	SLASH_T,
 	PERCENT_T,
-	CARAT_T,
+	CARET_T,
 	LESS_THAN_T,
 	GREATER_THAN_T,
 	EQUAL_T,
@@ -94,31 +96,52 @@ enum TokenId {
 };
 #undef PG_KEYWORD
 
+// Designed to combine into flags.
+//
+// ERROR_TOKEN never appears on its own.  If we think we know what 
+// the token was supposed to be, it's combined with that category.
+// If we can't recognize it at all, then it's combined with INVALID_TOKEN.
+//
 enum TokenCategory {
-	INVALID_TOKEN,
-	LITERAL_TOKEN,
-	IDENTIFIER_TOKEN,
-	UNRESERVED_KEYWORD,
-	RESERVED_KEYWORD,
-	TYPE_FUNC_NAME_KEYWORD,
-	COL_NAME_KEYWORD,
-	WHITESPACE_TOKEN,
-	COMMENT_TOKEN,
-	OPERATOR_TOKEN,
-	PARAMETER_TOKEN,
-	ERROR_TOKEN
+	INVALID_TOKEN = 1,
+	LITERAL_TOKEN = 2,
+	IDENTIFIER_TOKEN = 4,
+	
+	KEYWORD_TOKEN = 8,
+	
+	KW_IS_UNRESERVED = 16,
+	KW_IS_RESERVED = 32,
+	KW_IS_TYPE_FUNC_NAME = 64,
+	KW_IS_COL_NAME = 128,
+	
+	UNRESERVED_KEYWORD = 24,
+	RESERVED_KEYWORD = 40,
+	TYPE_FUNC_NAME_KEYWORD = 72,
+	COL_NAME_KEYWORD = 136,
+	
+	TOKEN_IS_IGNORED = 256,
+	TOKEN_IS_WHITESPACE = 512,
+	TOKEN_IS_COMMENT = 1024,
+	WHITESPACE_TOKEN = 768,
+	COMMENT_TOKEN = 1280,
+	
+	OPERATOR_TOKEN = 2048,
+	PARAMETER_TOKEN = 4096,
+	ERROR_TOKEN = 8192,
+	
+	CATEGORIES_SENTINAL = 16384
 };
+typedef int CategoryFlags;
 
 TokenId		keywordToId	(
 			const char *text, 
 			TokenId from = TokenId(INVALID + 1),
 			TokenId to = KW_SENTINAL
 		);
-TokenCategory 	category	(TokenId id);
-int 		lemonId		(TokenId id);
 const char * 	idString	(TokenId id);
-const char *	categoryString	(TokenCategory cat);
-
+std::string	categoryString	(CategoryFlags category_flags);
+int 		lemonId		(TokenId id);
+int 		category	(TokenId id);
 
 } // PGParse
 

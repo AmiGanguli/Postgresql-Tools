@@ -831,7 +831,61 @@ other			.
 		}
 
 {self}		{
-			ADD_TOKEN(PGParse::OPERATOR_T);
+			switch (yytext[0]) {
+			case ',':
+				ADD_TOKEN(PGParse::COMMA_T);
+				break;
+			case '(':
+				ADD_TOKEN(PGParse::OPEN_PAREN_T);
+				break;
+			case ')':
+				ADD_TOKEN(PGParse::CLOSE_PAREN_T);
+				break;
+			case '[':
+				ADD_TOKEN(PGParse::OPEN_BRACKET_T);
+				break;
+			case ']':
+				ADD_TOKEN(PGParse::CLOSE_BRACKET_T);
+				break;
+			case '.':
+				ADD_TOKEN(PGParse::DOT_T);
+				break;
+			case ';':
+				ADD_TOKEN(PGParse::SEMI_COLON_T);
+				break;
+			case ':':
+				ADD_TOKEN(PGParse::COLON_T);
+				break;
+			case '+':
+				ADD_TOKEN(PGParse::PLUS_T);
+				break;
+			case '-':
+				ADD_TOKEN(PGParse::MINUS_T);
+				break;
+			case '*':
+				ADD_TOKEN(PGParse::STAR_T);
+				break;
+			case '/':
+				ADD_TOKEN(PGParse::SLASH_T);
+				break;
+			case '%':
+				ADD_TOKEN(PGParse::PERCENT_T);
+				break;
+			case '^':
+				ADD_TOKEN(PGParse::CARET_T);
+				break;
+			case '<':
+				ADD_TOKEN(PGParse::LESS_THAN_T);
+				break;
+			case '>':
+				ADD_TOKEN(PGParse::GREATER_THAN_T);
+				break;
+			case '=':
+				ADD_TOKEN(PGParse::EQUAL_T);
+				break;
+			default:
+				ADD_TOKEN(PGParse::OPERATOR_T);
+			}
 		}
 
 {operator}	{
@@ -889,6 +943,7 @@ other			.
 				/* Strip the unwanted chars from the token */
 				yyless(nchars);
 			}
+			
 			ADD_TOKEN(PGParse::OPERATOR_T);
 		}
 		

@@ -299,39 +299,39 @@ TEST_CASE("Scanner::scan/operators1", "Misc operators")
 		{5, 1, PGParse::WHITESPACE_T},	// 3
 		{6, 2, PGParse::COLONEQUALS_T},	// 4
 		{8, 1, PGParse::WHITESPACE_T},	// 5
-		{9, 1, PGParse::OPERATOR_T},	// 6
+		{9, 1, PGParse::COMMA_T},	// 6
 		{10, 1, PGParse::WHITESPACE_T},	// 7
-		{11, 1, PGParse::OPERATOR_T},	// 8
+		{11, 1, PGParse::OPEN_PAREN_T},	// 8
 		{12, 1, PGParse::WHITESPACE_T},	// 9
-		{13, 1, PGParse::OPERATOR_T},	// 10
+		{13, 1, PGParse::CLOSE_PAREN_T},	// 10
 		{14, 1, PGParse::WHITESPACE_T},	// 11
-		{15, 1, PGParse::OPERATOR_T},	// 12
+		{15, 1, PGParse::OPEN_BRACKET_T},	// 12
 		{16, 1, PGParse::WHITESPACE_T},	// 13
-		{17, 1, PGParse::OPERATOR_T},	// 14
+		{17, 1, PGParse::CLOSE_BRACKET_T},	// 14
 		{18, 1, PGParse::WHITESPACE_T},	// 15
-		{19, 1, PGParse::OPERATOR_T},	// 16
+		{19, 1, PGParse::DOT_T},	// 16
 		{20, 1, PGParse::WHITESPACE_T},	// 17
-		{21, 1, PGParse::OPERATOR_T},	// 18
+		{21, 1, PGParse::SEMI_COLON_T},	// 18
 		{22, 1, PGParse::WHITESPACE_T},	// 19
-		{23, 1, PGParse::OPERATOR_T},	// 20
+		{23, 1, PGParse::COLON_T},	// 20
 		{24, 1, PGParse::WHITESPACE_T},	// 21
-		{25, 1, PGParse::OPERATOR_T},	// 22
+		{25, 1, PGParse::PLUS_T},	// 22
 		{26, 1, PGParse::WHITESPACE_T},	// 23
-		{27, 1, PGParse::OPERATOR_T},	// 24
+		{27, 1, PGParse::MINUS_T},	// 24
 		{28, 1, PGParse::WHITESPACE_T},	// 25
-		{29, 1, PGParse::OPERATOR_T},	// 26
+		{29, 1, PGParse::STAR_T},	// 26
 		{30, 1, PGParse::WHITESPACE_T},	// 27
-		{31, 1, PGParse::OPERATOR_T},	// 28
+		{31, 1, PGParse::SLASH_T},	// 28
 		{32, 1, PGParse::WHITESPACE_T},	// 29
-		{33, 1, PGParse::OPERATOR_T},	// 30
+		{33, 1, PGParse::PERCENT_T},	// 30
 		{34, 1, PGParse::WHITESPACE_T},	// 31
-		{35, 1, PGParse::OPERATOR_T},	// 32
+		{35, 1, PGParse::CARET_T},	// 32
 		{36, 1, PGParse::WHITESPACE_T},	// 33
-		{37, 1, PGParse::OPERATOR_T},	// 34
+		{37, 1, PGParse::LESS_THAN_T},	// 34
 		{38, 1, PGParse::WHITESPACE_T},	// 35
-		{39, 1, PGParse::OPERATOR_T},	// 36
+		{39, 1, PGParse::GREATER_THAN_T},	// 36
 		{40, 1, PGParse::WHITESPACE_T},	// 37
-		{41, 1, PGParse::OPERATOR_T},	// 38
+		{41, 1, PGParse::EQUAL_T},	// 38
 		{42, 1, PGParse::WHITESPACE_T},	// 39
 		{43, 17, PGParse::OPERATOR_T}	// 40
 	};
@@ -457,3 +457,34 @@ TEST_CASE("Scanner::scan/identifiers1", "Bare identifiers and keywords")
 	REQUIRE(j == 11);
 }
 
+TEST_CASE("Scanner::scan/filters1", "Iterate through tokens with a filter")
+{
+	const char *bytes = "if then end if hello world";
+	//                   000000000011111111112222222222
+	//                   012345678901234567890123456789
+	PGParse::Token correct[] = {
+		{0, 2, PGParse::IF_P_KW},		// 0
+		{3, 4, PGParse::THEN_KW},		// 1
+		{8, 3, PGParse::END_P_KW},		// 2
+		{12, 2, PGParse::IF_P_KW},		// 3
+		{15, 5, PGParse::IDENTIFIER_T},		// 4
+		{21, 5, PGParse::IDENTIFIER_T}		// 5
+	};
+	REQUIRE (true);
+	PGParse::Scanner scanner;
+	std::size_t len = strlen(bytes);
+	scanner.scan(bytes, len);
+	int j = 0;
+	for (
+		PGParse::TokenList::const_iterator i = scanner.tokensBegin(PGParse::TOKEN_IS_IGNORED);
+		i != scanner.tokensEnd();
+		i ++, j ++
+	) {
+		//std::cout << i->offset() << i->idString() << std::endl;
+		REQUIRE(j < 6);
+		REQUIRE(i->offset() == correct[j].offset());
+		REQUIRE(i->length() == correct[j].length());
+		REQUIRE(i->id() == correct[j].id());
+	}
+	REQUIRE(j == 6);
+}
