@@ -41,7 +41,7 @@ TokenMeta token_data[] = {
 	{"float literal",	 			LITERAL_TOKEN, -1},
 	{"dollar quote string literal",	 		LITERAL_TOKEN, -1},
 	{"national character flag",			LITERAL_TOKEN, -1},
-	{"dentifier",					IDENTIFIER_TOKEN, -1},
+	{"identifier",					IDENTIFIER_TOKEN, -1},
 	{"double-quote identifier",			IDENTIFIER_TOKEN, -1},
 	{"unicode identifier",				IDENTIFIER_TOKEN, -1},
 	{"whitespace",	 				WHITESPACE_TOKEN, -1},

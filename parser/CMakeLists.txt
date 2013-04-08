@@ -52,4 +52,14 @@ add_executable(parser
 	${PROJECT_BINARY_DIR}/ParserLemon.h
 )
 
+add_executable(spirit
+	${PROJECT_SOURCE_DIR}/src/bin/spirit.C
+)
 	
+add_executable(handcrafted
+	src/bin/handcrafted.C
+	src/lib/Token.C
+	src/lib/TokenId.C
+	${FLEX_scanner_OUTPUTS}
+	${PROJECT_BINARY_DIR}/ParserLemon.h
+)
