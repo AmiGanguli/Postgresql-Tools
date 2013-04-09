@@ -3,6 +3,8 @@
 #include <cstring>
 #include <list>
 #include <boost/bind.hpp>
+#include <loki/Typelist.h>
+#include <loki/TypelistMacros.h>
 
 namespace PGParse {
 	
@@ -14,6 +16,12 @@ class DropTableStatement : public Statement
 {
 public:
 	DropTableStatement(TokenList::const_iterator table_name)	{}
+};
+
+class StatementBlock
+{
+public:
+	std::list<Statement*> statements;
 };
 	
 /**
@@ -73,6 +81,25 @@ public:
 		current_ = frame->begin;
 		delete frame;
 	}
+
+	template <PGParse::TokenId ID>
+	class T
+	{
+	public:
+		bool 
+		operator () (iterator& current, iterator* out = 0)
+		{
+			if (current->id() != ID) {
+				return false;
+			}
+			if (out) {
+				*out = current;
+			}
+			current ++;
+			return true;
+		}
+	};
+
 	
 	bool
 	token(PGParse::TokenId token_id, iterator* out = 0)
@@ -86,10 +113,11 @@ public:
 		current_ ++;
 		return true;
 	}
-	
+
+/*	
 	template <
 		class ITEM,
-		bool (ITEM::*FUNC)(ITEM**) 
+		bool (ITEM::*FUNC)(ITEM**)
 	>
 	bool
 	zero_or_more_of(std::list<ITEM*>& out)
@@ -104,7 +132,7 @@ public:
 
 	template <
 		class ITEM,
-		bool (ITEM::*FUNC)(ITEM**) 
+		bool (Parser::*FUNC)(ITEM**) 
 	>
 	bool
 	one_or_more_of(std::list<ITEM*>& out)
@@ -116,15 +144,27 @@ public:
 		// Item still holds the last item found.
 		return item != 0;
 	}
+*/	
+
+	template<class ITEM>
+	bool
+	parse(iterator *out = 0)
+	{
+		ITEM p;
+		return p(current_, out);
+	}
+	
+	typedef LOKI_TYPELIST_3(T<DROP_KW>, T<TABLE_KW>, T<IDENTIFIER_T>) DropTable_rule;
 	
 	bool
 	drop_table(Statement **out)
 	{
+		//TokenParser<DROP_KW> drop_kw;
 		iterator identifier;
 		if (
-			token(DROP_KW)
-			&& token(TABLE_KW)
-			&& token(IDENTIFIER_T, &identifier)
+			parse< T<DROP_KW> >()  //drop_kw(current_)   // token(DROP_KW)
+			&& parse< T<TABLE_KW> >() //&& token(TABLE_KW)
+			&& parse< T<IDENTIFIER_T> >(&identifier) // && token(IDENTIFIER_T, &identifier)
 		) {
 			std::cout << "identifier " << identifier->idString() << std::endl;
 			*out = new DropTableStatement(identifier);
@@ -146,6 +186,14 @@ public:
 		}
 		return false;
 	}
+/*	
+	bool
+	statement_block(StatementBlock **out)
+	{
+		*out = new StatementBlock();
+		return zero_or_more_of<Statement,&Parser::statement>((*out)->statements);
+	}
+*/
 };
 
 void 
