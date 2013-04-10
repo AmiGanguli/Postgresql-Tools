@@ -5,6 +5,7 @@
 #include <boost/bind.hpp>
 #include <loki/Typelist.h>
 #include <loki/TypelistMacros.h>
+#include <loki/HierarchyGenerators.h>
 
 namespace PGParse {
 	
@@ -154,7 +155,15 @@ public:
 		return p(current_, out);
 	}
 	
+	template <class RULE>
+	struct Parse : public RULE
+	{
+		//Head *x;
+	};
+	
 	typedef LOKI_TYPELIST_3(T<DROP_KW>, T<TABLE_KW>, T<IDENTIFIER_T>) DropTable_rule;
+	
+	typedef Parse<DropTable_rule> ParseDropTable;
 	
 	bool
 	drop_table(Statement **out)
@@ -232,4 +241,7 @@ int main()
 		scanner.tokensBegin(PGParse::TOKEN_IS_IGNORED),
 		scanner.tokensEnd()
 	);
+	
+	PGParse::Parser::ParseDropTable parse_drop_table;
+	
 }
