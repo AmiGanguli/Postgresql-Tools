@@ -57,7 +57,7 @@ add_executable(spirit
 )
 	
 add_executable(handcrafted
-	src/bin/handcrafted.C
+	src/bin/handcrafted2.C
 	src/lib/Token.C
 	src/lib/TokenId.C
 	${FLEX_scanner_OUTPUTS}

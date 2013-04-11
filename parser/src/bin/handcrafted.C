@@ -3,8 +3,7 @@
 #include <cstring>
 #include <list>
 #include <boost/bind.hpp>
-#include <loki/Typelist.h>
-#include <loki/TypelistMacros.h>
+#include <loki/Sequence.h>
 #include <loki/HierarchyGenerators.h>
 
 namespace PGParse {
@@ -83,25 +82,6 @@ public:
 		delete frame;
 	}
 
-	template <PGParse::TokenId ID>
-	class T
-	{
-	public:
-		bool 
-		operator () (iterator& current, iterator* out = 0)
-		{
-			if (current->id() != ID) {
-				return false;
-			}
-			if (out) {
-				*out = current;
-			}
-			current ++;
-			return true;
-		}
-	};
-
-	
 	bool
 	token(PGParse::TokenId token_id, iterator* out = 0)
 	{
@@ -155,15 +135,48 @@ public:
 		return p(current_, out);
 	}
 	
-	template <class RULE>
-	struct Parse : public RULE
+	template <PGParse::TokenId ID>
+	class T
 	{
-		//Head *x;
+	public:
+		bool 
+		operator () (iterator& current, iterator* out = 0)
+		{
+			if (current->id() != ID) {
+				return false;
+			}
+			if (out) {
+				*out = current;
+			}
+			current ++;
+			return true;
+		}
+	};
+
+	template <class RULE>
+	struct Rule
+	{
+		typename RULE::Type::Head *head;
+		typename RULE::Type::Tail tail;
+		typedef Loki::Tuple<RULE> Result;
+
+		~Rule()
+		{
+			delete head;
+		}
+		
+		void
+		parse(iterator begin, const iterator& end)
+		{}
 	};
 	
-	typedef LOKI_TYPELIST_3(T<DROP_KW>, T<TABLE_KW>, T<IDENTIFIER_T>) DropTable_rule;
+	template <>
+	struct Rule<Loki::NullType>
+	{};
 	
-	typedef Parse<DropTable_rule> ParseDropTable;
+	
+
+	typedef Rule< Loki::Seq< T<DROP_KW>, T<TABLE_KW>, T<IDENTIFIER_T> > > DropTable;
 	
 	bool
 	drop_table(Statement **out)
@@ -242,6 +255,6 @@ int main()
 		scanner.tokensEnd()
 	);
 	
-	PGParse::Parser::ParseDropTable parse_drop_table;
+	PGParse::Parser::DropTable drop_table;
 	
 }
