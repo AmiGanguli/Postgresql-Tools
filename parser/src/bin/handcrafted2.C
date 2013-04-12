@@ -46,8 +46,9 @@ public:
 		std::cout << "parsing token " << idString(ID) << std::endl;
 		if (begin == end) {
 			std::cout << "begin == end" << std::endl;
+		} else {
+			std::cout << "begin is " << begin->idString() << std::endl;
 		}
-		std::cout << "begin is " << begin->idString() << std::endl;
 		if (begin == end || begin->id() != ID) {
 			std::cout << "ID didn't match" << std::endl;
 			return 0;
@@ -146,16 +147,67 @@ public:
 	}
 };
 
+template <class NODE>
+class ZeroOrMore : public NodeBase
+{
+private:
+	std::list<NODE*> nodes_;
+	
+	ZeroOrMore() : nodes_()
+	{}
 
+public:
+	~ZeroOrMore()
+	{
+		while (nodes_.size()) {
+			delete nodes_.front();
+			nodes_.pop_front();
+		}
+	}
+	
+	void
+	append(NODE* node)
+	{
+		nodes_.push_back(node);
+	}
+	
+	std::string
+	asString() const
+	{
+		std::string ret("{");
+		typename std::list<NODE*>::const_iterator i = nodes_.begin();
+		for ( ; i != nodes_.end(); i++) {
+			ret += (*i)->asString() + ", ";
+		}
+		ret += "}";
+		return ret;
+	}
+	
+	static ZeroOrMore *
+	parse (iterator &begin, const iterator &end)
+	{
+		ZeroOrMore *ret = new ZeroOrMore();
+		NODE *result = 0;
+		while (result = NODE::parse(begin, end)) {
+			ret->append(result);
+		}
+		return ret;
+	}
+};
 
 typedef Node< Loki::Seq< T<DROP_KW>, T<TABLE_KW>, T<IDENTIFIER_T> > > DropTableNode;
+typedef Node< Loki::Seq< DropTableNode, T<SEMI_COLON_T> > > StatementNode;
+typedef ZeroOrMore< StatementNode > StatementsNode;
 	
 
 } // PGParse
 
 int main()
 {
-	const char *bytes = "Drop /* C-style comment*/  Table a_table_name;";
+	const char *bytes = 
+		"Drop /* C-style comment*/  Table a_table_name;"
+		" drop table another_table;"
+	;
 	
 	PGParse::Scanner scanner;
 	std::size_t len = strlen(bytes);
@@ -164,12 +216,12 @@ int main()
 	PGParse::iterator begin = scanner.tokensBegin(PGParse::TOKEN_IS_IGNORED);
 	PGParse::iterator end = scanner.tokensEnd();
 	
-	PGParse::DropTableNode *drop_table = PGParse::DropTableNode::parse(begin, end);
+	PGParse::StatementsNode *node = PGParse::StatementsNode::parse(begin, end);
 	
-	if (drop_table) {
-		std::cout << drop_table->asString();
+	if (node) {
+		std::cout << node->asString();
 	} else {
-		std::cout << "drop table didn't parse" << std::endl;
+		std::cout << "node didn't parse" << std::endl;
 	}
 	
 	/*drop_table.parse(
