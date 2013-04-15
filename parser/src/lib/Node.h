@@ -34,6 +34,50 @@ public:
 	}
 };
 
+template <int CATEGORY_FILTER>
+class C : public Node
+{
+public:
+	C(token_iterator token_) : token(token_)
+	{}
+	
+	~C()
+	{}
+	
+	token_iterator token;
+
+	std::string
+	asString(int indent = 0) const
+	{
+		std::string ret("<");
+		const char *s = token->idString();
+		while (*s) {
+			ret +=toupper(*s);
+			s ++;
+		}
+		ret += '>';
+		return ret;
+	}
+
+	
+	static std::string
+	ruleString(int indent = 0)
+	{
+		return std::string("<") + categoryString(CATEGORY_FILTER) + ">";
+	}
+
+	static C *
+	parse (token_iterator &begin, const token_iterator &end)
+	{
+		if (begin == end || !(begin->category() & CATEGORY_FILTER)) {
+			return 0;
+		}
+		C *ret = new C(begin);
+		begin ++;
+		return ret;
+	}
+};
+
 template <PGParse::TokenId ID>
 class T : public Node
 {
